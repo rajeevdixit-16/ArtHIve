@@ -137,7 +137,7 @@ arthive/
 
 🧩 NFT minting integration
 ```
-🧑‍💻 Author
+# 🧑‍💻 Author
 
   Rajeev Dixit
   📧 [dixitrajeev5202@gmail.com]
