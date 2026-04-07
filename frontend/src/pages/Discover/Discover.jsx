@@ -551,7 +551,7 @@ const Discover = () => {
                 {/* ✅ SAVE BUTTON - Top Right */}
                 <div className="absolute top-4 left-4 z-10">
                   <button
-                    onClick={(e) => toggleSave(artwork._id, artwork.title, e)}
+                    onClick={(e) => toggleSave(artwork._id, e)}
                     disabled={savingArtwork === artwork._id || !user}
                     className={`p-2 rounded-full transition-all duration-300 ${
                       artwork.isSaved 
@@ -678,7 +678,7 @@ const Discover = () => {
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    toggleSave(selectedArtwork._id, selectedArtwork.title, e);
+                    toggleSave(selectedArtwork._id, e);
                   }}
                   disabled={savingArtwork === selectedArtwork._id || !user}
                   className={`absolute top-4 left-4 z-10 px-4 py-2 rounded-full transition-all duration-300 ${

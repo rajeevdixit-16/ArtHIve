@@ -1,7 +1,7 @@
 import express from 'express';
 import multer from 'multer';
 import path from 'path';
-import { analyzeImage } from '../ai_services/vision_api_services/auto_tagger.js';
+import { analyzeImageWithClarifai } from '../ai_services/vision_api_services/clarifai_tagger.js';
 
 const router = express.Router();
 
@@ -37,7 +37,7 @@ const upload = multer({
 });
 
 // POST 
-router.post('/with-tags', upload.single('image'), async (req, res) => {
+router.post('/auto-tag', upload.single('image'), async (req, res) => {
   console.log('🎯 ========== AUTO-TAG ROUTE START ==========');
   
   let fileDeleted = false;
@@ -70,19 +70,19 @@ router.post('/with-tags', upload.single('image'), async (req, res) => {
       });
     }
 
-    console.log('🔍 Starting Google Vision API analysis...');
+    console.log('🔍 Starting Clarifai API analysis...');
     
     // Add timeout to prevent hanging
     const timeoutPromise = new Promise((_, reject) => {
       setTimeout(() => reject(new Error('Analysis timeout after 30 seconds')), 30000);
     });
 
-    // Analyze image with Google Vision API
-    console.log('📤 Calling analyzeImage function...');
-    const analysisPromise = analyzeImage(imagePath);
+    // Analyze image with Clarifai
+    console.log('📤 Calling analyzeImageWithClarifai function at:', new Date().toISOString());
+    const analysisPromise = analyzeImageWithClarifai(imagePath);
     
     const analysis = await Promise.race([analysisPromise, timeoutPromise]);
-    console.log('✅ Google Vision analysis completed');
+    console.log('✅ Clarifai analysis completed at:', new Date().toISOString());
     
     console.log('📊 Analysis results:', {
       labelsCount: analysis.labels?.length || 0,
@@ -92,7 +92,7 @@ router.post('/with-tags', upload.single('image'), async (req, res) => {
     // Extract tags from labels
     const tags = analysis.labels
       .sort((a, b) => (b.score || 0) - (a.score || 0))
-      .slice(0, 10)
+      .slice(0, 6)
       .map(label => label.description)
       .filter(tag => tag && tag.length > 0);
 

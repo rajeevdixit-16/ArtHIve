@@ -12,9 +12,9 @@ export const autoTagImage = async (file, clerkUserId) => {
     console.log('🔄 Sending STANDALONE auto-tag request...');
     console.log('📁 File:', file.name, 'Size:', file.size);
     
-    // Add timeout to prevent hanging
+    // Add timeout to prevent hanging (increased to 60s for Vision API processing)
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 5000); 
+    const timeoutId = setTimeout(() => controller.abort(new DOMException('Auto-tag request timeout - Vision API took too long', 'AbortError')), 60000); 
 
     const response = await fetch(`${API_BASE_URL}/auto-tag`, {
       method: 'POST',

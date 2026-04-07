@@ -251,8 +251,12 @@ const Dashboard = () => {
         return `${hours}h ago`;
       } else if (days === 1) {
         return 'Yesterday';
-      } else {
+      } else if (days < 30) {
         return `${days}d ago`;
+      } else {
+        // For older dates, show actual date
+        const date = new Date(timestampNum);
+        return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: date.getFullYear() !== new Date().getFullYear() ? 'numeric' : undefined });
       }
     } catch (error) {
       return 'Recently';
@@ -449,33 +453,48 @@ const Dashboard = () => {
             </div>
           </div>
 
-          <div className="space-y-4">
-            {activities.map((activity) => (
-              <div
-                key={activity.id}
-                className="flex items-center justify-between p-4 bg-white/5 rounded-xl border border-white/5 hover:border-white/10 transition-all duration-300 group"
-              >
-                <div className="flex items-center space-x-4">
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center group-hover:scale-110 transition-all duration-300 ${activity.type === 'artwork_upload' ? 'bg-green-500/20 group-hover:bg-green-500/30' :
-                      activity.type === 'artwork_like' ? 'bg-red-500/20 group-hover:bg-red-500/30' :
-                        activity.type === 'artwork_view' ? 'bg-blue-500/20 group-hover:bg-blue-500/30' :
-                          activity.type === 'collection_create' ? 'bg-purple-500/20 group-hover:bg-purple-500/30' :
-                            activity.type === 'new_follower' ? 'bg-yellow-500/20 group-hover:bg-yellow-500/30' :
-                              'bg-gradient-to-r from-purple-500/20 to-pink-500/20 group-hover:from-purple-500/30 group-hover:to-pink-500/30'
-                    }`}>
-                    <span className="text-lg">{activity.icon}</span>
+          <div className="space-y-0 relative">
+            {activities.map((activity, index) => (
+              <div key={activity.id} className="relative">
+                {/* Timeline line connector */}
+                {index < activities.length - 1 && (
+                  <div className="absolute left-5 top-12 w-0.5 h-12 bg-gradient-to-b from-purple-500/50 to-transparent"></div>
+                )}
+                
+                {/* Activity item */}
+                <div className="flex items-center justify-between p-4 mb-4 bg-white/5 rounded-xl border border-white/5 hover:border-white/10 transition-all duration-300 group relative ml-4">
+                  {/* Icon with timeline dot */}
+                  <div className="flex items-center space-x-4 flex-1">
+                    <div className="relative">
+                      {/* Timeline dot */}
+                      <div className="absolute -left-6 top-0 w-3 h-3 rounded-full bg-purple-500 border-2 border-slate-950"></div>
+                      
+                      {/* Activity icon */}
+                      <div className={`w-10 h-10 rounded-full flex items-center justify-center group-hover:scale-110 transition-all duration-300 ${activity.type === 'artwork_upload' ? 'bg-green-500/20 group-hover:bg-green-500/30' :
+                          activity.type === 'artwork_like' ? 'bg-red-500/20 group-hover:bg-red-500/30' :
+                            activity.type === 'artwork_view' ? 'bg-blue-500/20 group-hover:bg-blue-500/30' :
+                              activity.type === 'collection_create' ? 'bg-purple-500/20 group-hover:bg-purple-500/30' :
+                                activity.type === 'new_follower' ? 'bg-yellow-500/20 group-hover:bg-yellow-500/30' :
+                                  'bg-gradient-to-r from-purple-500/20 to-pink-500/20 group-hover:from-purple-500/30 group-hover:to-pink-500/30'
+                        }`}>
+                        <span className="text-lg">{activity.icon}</span>
+                      </div>
+                    </div>
+                    
+                    <div className="flex-1">
+                      <p className="text-white font-medium">{activity.action}</p>
+                      <p className="text-gray-400 text-sm">
+                        {formatRealTime(activity.timestamp)}
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-white font-medium">{activity.action}</p>
-                    <p className="text-gray-400 text-sm">
-                      {formatRealTime(activity.timestamp)}
-                    </p>
-                  </div>
+                  
+                  {/* Status indicator */}
+                  <div className={`w-2 h-2 rounded-full animate-pulse ${Date.now() - activity.timestamp < 300000 ? 'bg-green-500' :
+                      Date.now() - activity.timestamp < 3600000 ? 'bg-yellow-500' :
+                        'bg-gray-500'
+                    }`}></div>
                 </div>
-                <div className={`w-2 h-2 rounded-full animate-pulse ${Date.now() - activity.timestamp < 300000 ? 'bg-green-500' :
-                    Date.now() - activity.timestamp < 3600000 ? 'bg-yellow-500' :
-                      'bg-gray-500'
-                  }`}></div>
               </div>
             ))}
           </div>

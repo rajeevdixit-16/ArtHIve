@@ -12,7 +12,7 @@ import { clerkClient } from '@clerk/clerk-sdk-node';
 import fs from 'fs';
 
 // AI Services
-import { analyzeImage } from './ai_services/vision_api_services/auto_tagger.js';
+// import { analyzeImage } from './ai_services/vision_api_services/auto_tagger.js';
 import recommendationRoutes from './routes/recommendations.js';
 
 // Models
@@ -26,6 +26,7 @@ import userRoutes from './routes/users.js';
 import artworkRoutes from './routes/artworks.js';
 import followRoutes from './routes/follow.js';
 import savedRoutes from './routes/saved.js';
+import autoTaggerRoutes from './routes/autoTagger.js';
 
 
 // --- 2. INITIAL SETUP ---
@@ -56,6 +57,7 @@ app.use('/api/artworks', artworkRoutes);
 app.use('/api/collections', collectionRoutes);
 app.use('/api/recommendations', recommendationRoutes);
 app.use('/api/saved', savedRoutes);
+app.use('/api', autoTaggerRoutes);
 
 app.get('/api/test-saved', (req, res) => {
   console.log('✅ Test route hit!');
@@ -68,15 +70,8 @@ app.get('/api/test-saved', (req, res) => {
 
 
 
-// --- Multer Configuration ---
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, 'uploads/'),
-  filename: (req, file, cb) => cb(null, `${Date.now()}-${file.originalname}`)
-});
-const upload = multer({ storage });
-if (!fs.existsSync('uploads')) {
-  fs.mkdirSync('uploads');
-}
+// Note: Multer configuration is handled in individual route files (e.g., autoTagger.js)
+// This prevents duplicate configurations and keeps upload logic with its routes
 
 
 // ==================== DATABASE CONNECTION ====================
@@ -163,8 +158,6 @@ app.post('/api/clerk/webhook', express.raw({ type: 'application/json' }), async 
   });
 });
 
-app.post('/api/auto-tag', upload.single('image'), async (req, res) => { });
-app.post('/api/upload-with-tags', upload.single('image'), async (req, res) => {});
 app.get('/api/health', (req, res) => { 
   res.json({ 
     status: 'OK', 
@@ -172,8 +165,6 @@ app.get('/api/health', (req, res) => {
     timestamp: new Date().toISOString()
   });
  });
-app.get('/api/protected', ClerkExpressRequireAuth(), (req, res) => { });
-app.get('/api/me', ClerkExpressRequireAuth(), async (req, res) => {});
 
 
 // ==================== ERROR HANDLING ====================
