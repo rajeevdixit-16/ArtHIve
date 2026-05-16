@@ -24,7 +24,8 @@ const Signup = () => {
             routing="path"
             path="/signup"
             signInUrl="/login"
-            redirectUrl="/profile" // ← ADD THIS LINE
+            fallbackRedirectUrl="/dashboard"
+            unsafeMetadata={undefined}
             appearance={{
               elements: {
                 rootBox: "w-full",
@@ -47,21 +48,9 @@ const Signup = () => {
                 formButtonPrimary:
                   "w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-2 px-3 rounded-lg font-medium hover:shadow-lg hover:shadow-purple-500/20 transition-all duration-200 mt-3 text-sm",
                 footer: "hidden",
-                formResendCodeLink: "text-purple-400 hover:text-purple-300 text-xs",
                 alert: "bg-red-500/10 border border-red-500/20 text-red-300 rounded-lg p-2 text-xs mt-2",
                 alertText: "text-red-300 text-xs",
-                alertIcon: "text-red-400 w-3 h-3",
-                
-                // Verification styles
-                verifyCode: "space-y-3 mt-4",
-                codeInput: "flex justify-between gap-2",
-                codeInputField: 
-                  "w-10 h-10 bg-white/5 border border-white/10 rounded-lg text-white text-center text-sm focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all duration-200 flex-1",
-                formHeaderTitle: "text-white text-lg font-bold text-center",
-                formHeaderSubtitle: "text-gray-400 text-sm text-center mb-4",
-                identityPreview: "bg-white/5 border border-white/10 rounded-lg p-3 text-white text-sm mb-4",
-                identityPreviewText: "text-white text-sm",
-                identityPreviewEditButton: "text-purple-400 hover:text-purple-300 text-xs"
+                alertIcon: "text-red-400 w-3 h-3"
               },
               layout: {
                 socialButtonsPlacement: "top",

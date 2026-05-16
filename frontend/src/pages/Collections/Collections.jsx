@@ -13,10 +13,13 @@ const Collections = () => {
   const [viewMode, setViewMode] = useState('public'); // 'public' or 'my'
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [itemsPerPage] = useState(12);
 
   useEffect(() => {
     fetchCollections();
-  }, [viewMode]);
+  }, [viewMode, currentPage]);
 
   const fetchCollections = async () => {
     try {
@@ -34,6 +37,9 @@ const Collections = () => {
       }
       if (response && response.collections) {
         setCollections(response.collections);
+        if (response.pagination) {
+          setTotalPages(response.pagination.totalPages || 1);
+        }
       } else {
         // Handle cases where the structure might be different or empty
         setCollections([]);
@@ -325,6 +331,55 @@ const Collections = () => {
                 Clear Filters
               </button>
             )}
+          </div>
+        )}
+
+        {/* Pagination Controls */}
+        {filteredCollections.length > 0 && totalPages > 1 && (
+          <div className="flex items-center justify-center gap-3 mb-12">
+            <button
+              onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+              disabled={currentPage === 1}
+              className="px-4 py-2 bg-white/5 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-white/10 transition-all duration-200 border border-white/10"
+            >
+              ← Previous
+            </button>
+            
+            <div className="flex items-center gap-2">
+              {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                let pageNum = i + 1;
+                if (totalPages > 5 && currentPage > 3) {
+                  pageNum = currentPage - 2 + i;
+                  if (pageNum > totalPages) pageNum = totalPages - 4 + i;
+                }
+                
+                return (
+                  <button
+                    key={pageNum}
+                    onClick={() => setCurrentPage(pageNum)}
+                    className={`px-3 py-2 rounded-lg transition-all duration-200 font-medium ${
+                      currentPage === pageNum
+                        ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg'
+                        : 'bg-white/5 text-gray-300 hover:bg-white/10 border border-white/10'
+                    }`}
+                  >
+                    {pageNum}
+                  </button>
+                );
+              })}
+            </div>
+
+            <button
+              onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+              disabled={currentPage === totalPages}
+              className="px-4 py-2 bg-white/5 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-white/10 transition-all duration-200 border border-white/10"
+            >
+              Next →
+            </button>
+
+            <span className="text-gray-400 text-sm ml-4">
+              Page {currentPage} of {totalPages}
+            </span>
           </div>
         )}
       </div>
