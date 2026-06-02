@@ -24,7 +24,7 @@ const Signup = () => {
             routing="path"
             path="/signup"
             signInUrl="/login"
-            fallbackRedirectUrl="/dashboard"
+            forceRedirectUrl="/profile"
             unsafeMetadata={undefined}
             appearance={{
               elements: {

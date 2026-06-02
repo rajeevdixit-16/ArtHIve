@@ -28,9 +28,9 @@ function App() {
   return (
     <Router>
       <div className="App flex flex-col min-h-screen">
-        {/* Catch Clerk verification redirect - skip to dashboard */}
+        {/* Catch Clerk verification redirect - redirect to email verification */}
         <Routes>
-          <Route path="/signup/verify-email-address" element={<Navigate to="/dashboard" replace />} />
+          
           <Route path="*" element={<AppRoutes />} />
         </Routes>
       </div>
@@ -71,7 +71,7 @@ function AppRoutes() {
             <Route path="/" element={<Landing />} />
             <Route path="/discover" element={<Discover />} />
             <Route path="/login" element={<Login />} />
-            <Route path="/signup" element={<Signup />} />
+            <Route path="/signup/*" element={<Signup />} />
             <Route path="/collections" element={<Collections />} />
             <Route path="/collections/create" element={<CreateCollection />} />
             <Route path="/collections/:id" element={<CollectionDetail />} />
