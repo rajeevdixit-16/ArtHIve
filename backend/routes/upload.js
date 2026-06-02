@@ -5,6 +5,7 @@ import Artwork from '../models/Artwork.js';
 import { clerkClient } from '@clerk/clerk-sdk-node';
 import mongoose from 'mongoose';
 import User from '../models/User.js';
+import { analyzeTagsForContent, validateUpload, sanitizeDescription } from '../ai_services/moderation_service.js';
 
 const router = express.Router();
 
@@ -27,7 +28,7 @@ const upload = multer({
 // Upload artwork
 router.post('/', upload.single('image'), async (req, res) => {
   try {
-    const { title, description, category, customTags, clerkUserId } = req.body;
+    const { title, description, category, customTags, clerkUserId, safeSearch = {}, forceUpload = false } = req.body;
 
     if (!clerkUserId) {
       return res.status(400).json({ 
@@ -59,6 +60,29 @@ router.post('/', upload.single('image'), async (req, res) => {
       });
     }
 
+    // Parse tags
+    let tags = [];
+    if (customTags) {
+      tags = customTags.split(',').map(tag => tag.trim()).filter(tag => tag);
+    }
+
+    // Perform content moderation
+    const moderationResult = analyzeTagsForContent(tags, safeSearch);
+    const uploadValidation = validateUpload(moderationResult, forceUpload);
+
+    if (!uploadValidation.canUpload) {
+      return res.status(400).json({
+        success: false,
+        error: 'Content moderation blocked this upload',
+        blocked: uploadValidation.blocked,
+        warnings: uploadValidation.warnings,
+        message: uploadValidation.blocked 
+          ? 'This content violates our content policy and cannot be uploaded.'
+          : 'This content may not be appropriate. Please review and confirm.',
+        needsConfirmation: !uploadValidation.blocked
+      });
+    }
+
     // Upload to Cloudinary
     const result = await new Promise((resolve, reject) => {
       const stream = cloudinary.uploader.upload_stream(
@@ -78,12 +102,6 @@ router.post('/', upload.single('image'), async (req, res) => {
       stream.end(req.file.buffer);
     });
 
-    // Parse tags
-    let tags = [];
-    if (customTags) {
-      tags = customTags.split(',').map(tag => tag.trim()).filter(tag => tag);
-    }
-
     // Create artwork in database
     console.log('🎨 Preparing artwork data...');
     console.log('User:', user);
@@ -91,7 +109,7 @@ router.post('/', upload.single('image'), async (req, res) => {
 
     const artworkData = {
       title: title.trim(),
-      description: description?.trim() || '',
+      description: sanitizeDescription(description) || '',
       imageUrl: result.secure_url,
       cloudinaryId: result.public_id,
       userId: user._id,
@@ -103,7 +121,7 @@ router.post('/', upload.single('image'), async (req, res) => {
       price: 0,
       fileFormat: req.file?.mimetype?.split('/')[1]?.toUpperCase() || 'PNG',
       fileSize: req.file?.size || 0,
-      status: 'published'
+      status: moderationResult.isFlagged ? 'flagged' : 'published'
     };
 
     console.log('💾 Artwork data:', artworkData);
@@ -116,7 +134,8 @@ router.post('/', upload.single('image'), async (req, res) => {
     res.status(201).json({
       success: true,
       message: 'Artwork uploaded successfully',
-      artwork
+      artwork,
+      moderationStatus: moderationResult.isFlagged ? 'flagged_for_review' : 'approved'
     });
   } catch (error) {
     console.error('❌ Upload error:', error);

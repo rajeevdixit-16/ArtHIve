@@ -27,6 +27,7 @@ import artworkRoutes from './routes/artworks.js';
 import followRoutes from './routes/follow.js';
 import savedRoutes from './routes/saved.js';
 import autoTaggerRoutes from './routes/autoTagger.js';
+import commentRoutes from './routes/comments.js';
 
 
 // --- 2. INITIAL SETUP ---
@@ -57,6 +58,7 @@ app.use('/api/artworks', artworkRoutes);
 app.use('/api/collections', collectionRoutes);
 app.use('/api/recommendations', recommendationRoutes);
 app.use('/api/saved', savedRoutes);
+app.use('/api/comments', commentRoutes);
 app.use('/api', autoTaggerRoutes);
 
 app.get('/api/test-saved', (req, res) => {

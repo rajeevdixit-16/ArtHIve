@@ -78,6 +78,18 @@ const userSchema = new mongoose.Schema({
     type: Boolean,
     default: false
   },
+  verificationCode: {
+    type: String,
+    default: null
+  },
+  verificationCodeExpires: {
+    type: Date,
+    default: null
+  },
+  verificationAttempts: {
+    type: Number,
+    default: 0
+  },
   isActive: {
     type: Boolean,
     default: true

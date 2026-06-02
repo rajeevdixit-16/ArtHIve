@@ -1,6 +1,6 @@
 
 import React from 'react'
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import { SignedIn, SignedOut } from '@clerk/clerk-react'
 
 // Pages
@@ -16,7 +16,6 @@ import CollectionDetail from './pages/CollectionDetail/CollectionDetail'
 import CreateCollection from './pages/CreateCollection/CreateCollection'
 import EditCollection from './pages/EditCollection/EditCollection'
 import EditProfile from './pages/EditProfile/EditProfile'
-import VerifyEmail from './pages/VerifyEmail/VerifyEmail'
 import Saved from './pages/Saved/Saved'
 // Components
 import Header from './components/Header/Header'
@@ -29,32 +28,45 @@ function App() {
   return (
     <Router>
       <div className="App flex flex-col min-h-screen">
-        {/* Signed In Users */}
-        <SignedIn>
-          <Header />
-          <main className="flex-grow bg-black pt-16">
-            <Routes>
-              <Route path="/" element={<Landing />} />
-              <Route path="/discover" element={<Discover />} />
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/profile" element={<Profile />} />
-              <Route path="/upload" element={<Upload />} />
-              <Route path="/collections" element={<Collections />} />
-              <Route path="/collections/create" element={<CreateCollection />} />
-              <Route path="/collections/:id" element={<CollectionDetail />} />
-              <Route path="/collections/:id/edit" element={<EditCollection />} />
-              <Route path="/edit-profile" element={<EditProfile />} />
-              <Route path="/saved" element={<Saved />} />
-              {/* Fallback route for signed-in users */}
-              <Route path="*" element={<Profile />} />
-            </Routes>
-          </main>
-          <Footer />
-        </SignedIn>
-        
-        {/* Signed Out Users */}
-        <SignedOut>
-          <div className='flex flex-col min-h-screen'>
+        {/* Catch Clerk verification redirect - skip to dashboard */}
+        <Routes>
+          <Route path="/signup/verify-email-address" element={<Navigate to="/dashboard" replace />} />
+          <Route path="*" element={<AppRoutes />} />
+        </Routes>
+      </div>
+    </Router>
+  )
+}
+
+function AppRoutes() {
+  return (
+    <>
+      {/* Signed In Users */}
+      <SignedIn>
+        <Header />
+        <main className="flex-grow bg-black pt-16">
+          <Routes>
+            <Route path="/" element={<Landing />} />
+            <Route path="/discover" element={<Discover />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/upload" element={<Upload />} />
+            <Route path="/collections" element={<Collections />} />
+            <Route path="/collections/create" element={<CreateCollection />} />
+            <Route path="/collections/:id" element={<CollectionDetail />} />
+            <Route path="/collections/:id/edit" element={<EditCollection />} />
+            <Route path="/edit-profile" element={<EditProfile />} />
+            <Route path="/saved" element={<Saved />} />
+            {/* Fallback route for signed-in users */}
+            <Route path="*" element={<Profile />} />
+          </Routes>
+        </main>
+        <Footer />
+      </SignedIn>
+      
+      {/* Signed Out Users */}
+      <SignedOut>
+        <div className='flex flex-col min-h-screen'>
           <Routes>
             <Route path="/" element={<Landing />} />
             <Route path="/discover" element={<Discover />} />
@@ -68,10 +80,9 @@ function App() {
             <Route path="*" element={<Login />} />
           </Routes>
           <Footer />
-          </div>
-        </SignedOut>
-      </div>
-    </Router>
+        </div>
+      </SignedOut>
+    </>
   )
 }
 
