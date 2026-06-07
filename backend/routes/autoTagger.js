@@ -1,7 +1,7 @@
 import express from 'express';
 import multer from 'multer';
 import path from 'path';
-import { analyzeImageWithClarifai } from '../ai_services/vision_api_services/clarifai_tagger.js';
+import { analyzeImageWithOpenAI } from '../ai_services/vision_api_services/openai_tagger.js';
 
 const router = express.Router();
 
@@ -70,19 +70,10 @@ router.post('/auto-tag', upload.single('image'), async (req, res) => {
       });
     }
 
-    console.log('🔍 Starting Clarifai API analysis...');
+    console.log('🔍 Starting OpenAI Vision analysis...');
     
-    // Add timeout to prevent hanging
-    const timeoutPromise = new Promise((_, reject) => {
-      setTimeout(() => reject(new Error('Analysis timeout after 30 seconds')), 30000);
-    });
-
-    // Analyze image with Clarifai
-    console.log('📤 Calling analyzeImageWithClarifai function at:', new Date().toISOString());
-    const analysisPromise = analyzeImageWithClarifai(imagePath);
-    
-    const analysis = await Promise.race([analysisPromise, timeoutPromise]);
-    console.log('✅ Clarifai analysis completed at:', new Date().toISOString());
+    const analysis = await analyzeImageWithOpenAI(imagePath);
+    console.log('✅ OpenAI analysis completed at:', new Date().toISOString());
     
     console.log('📊 Analysis results:', {
       labelsCount: analysis.labels?.length || 0,

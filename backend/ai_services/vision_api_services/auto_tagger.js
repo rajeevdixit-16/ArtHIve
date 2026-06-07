@@ -1,11 +1,11 @@
 // ⚠️ DEPRECATED: This file contains the old Google Cloud Vision API implementation
-// The project now uses Clarifai for image tagging (see clarifai_tagger.js)
+// The project now uses OpenAI Vision for image tagging (see openai_tagger.js)
 // Kept as backup/reference if needed in the future
 
-// To use Google Vision instead of Clarifai, uncomment the code below and:
+// To use Google Vision instead of OpenAI, uncomment the code below and:
 // 1. Enable billing on Google Cloud project
 // 2. Set GOOGLE_APPLICATION_CREDENTIALS in .env
-// 3. Update autoTagger.js route to import from here instead of clarifai_tagger.js
+// 3. Update autoTagger.js route to import from here instead of openai_tagger.js
 
 /*
 import vision from '@google-cloud/vision';

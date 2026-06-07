@@ -1,3 +1,10 @@
+// ⚠️ DEPRECATED: Replaced by OpenAI Vision tagging (see openai_tagger.js)
+// Kept as backup/reference if needed in the future
+// 
+// To use Clarifai instead of OpenAI:
+// 1. Add CLARIFAI_PAT to .env
+// 2. Update autoTagger.js to import analyzeImageWithClarifai from this file
+
 import fs from 'fs';
 import 'dotenv/config';
 
