@@ -45,7 +45,6 @@ const VerifyEmail = () => {
         setError('Failed to send verification code. Please try again.');
       } else {
         console.log('✅ Verification code sent to:', emailAddress);
-        // Show success message
         setSuccess('✅ Verification code sent to your email');
         setTimeout(() => setSuccess(''), 5000);
       }
@@ -57,7 +56,6 @@ const VerifyEmail = () => {
 
   // NOW use it in useEffect
   useEffect(() => {
-    // Wait for Clerk to fully load
     if (!isLoaded) {
       console.log('⏳ Waiting for Clerk to load...');
       return;
@@ -71,25 +69,20 @@ const VerifyEmail = () => {
         if (userEmail && isMounted) {
           setEmail(userEmail);
           console.log('✅ Email automatically set from Clerk:', userEmail);
-          // Send verification code
           await sendVerificationCode(userEmail);
           setPageLoading(false);
         } else if (!userEmail && retryCount < 2 && isMounted) {
-          // Retry a couple times
           console.log(`⏳ Waiting for email data (retry ${retryCount + 1})`);
           setTimeout(() => setRetryCount(retryCount + 1), 500);
         } else if (isMounted) {
-          // User exists but no email found - show manual entry
           console.log('ℹ️ Showing manual email entry');
           setShowEmailInput(true);
           setPageLoading(false);
         }
       } else if (retryCount < 2 && isMounted) {
-        // Wait for user to load
         console.log(`⏳ Waiting for Clerk user (retry ${retryCount + 1})`);
         setTimeout(() => setRetryCount(retryCount + 1), 800);
       } else if (isMounted) {
-        // User not loaded - show manual entry
         console.log('ℹ️ Showing manual email entry (user not loaded)');
         setShowEmailInput(true);
         setPageLoading(false);
@@ -119,7 +112,6 @@ const VerifyEmail = () => {
     newCode[index] = value;
     setVerificationCode(newCode);
 
-    // Auto-focus next input
     if (value && index < 5) {
       inputRefs.current[index + 1]?.focus();
     }
@@ -161,7 +153,6 @@ const VerifyEmail = () => {
       return;
     }
 
-    // Get email from state or from user object
     const emailToUse = email || user?.primaryEmailAddress?.emailAddress;
     
     if (!emailToUse) {
@@ -242,7 +233,7 @@ const VerifyEmail = () => {
         
         {/* Loading State */}
         {pageLoading && (
-          <div className="text-center">
+          <div className="text-center animate-fade-in-up">
             <div className="inline-block">
               <div className="w-12 h-12 border-4 border-purple-500 border-t-pink-500 rounded-full animate-spin mx-auto mb-4"></div>
               <p className="text-white text-center">Loading verification page...</p>
@@ -255,24 +246,27 @@ const VerifyEmail = () => {
         
         {/* EMAIL INPUT FORM - If Clerk didn't load user */}
         {showEmailInput && (
-          <>
+          <div className="animate-fade-in-up">
           {/* Header */}
           <div className="text-center mb-8">
             <div className="flex items-center justify-center space-x-2 mb-6">
               <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg flex items-center justify-center shadow-lg shadow-purple-500/50">
-                <span className="text-white font-bold text-sm">GG</span>
+                <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
               </div>
               <span className="text-white text-2xl font-bold">Grand Gallery</span>
             </div>
-            <h1 className="text-3xl font-bold text-white mb-2">Verify Your Email</h1>
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent mb-2">Verify Your Email</h1>
+            <div className="w-12 h-1 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full mb-4 mx-auto" />
             <p className="text-gray-300 text-sm">Enter your email to receive a verification code</p>
           </div>
 
           {/* Card */}
-          <div className="bg-white/5 backdrop-blur-xl rounded-2xl p-8 border border-white/10 shadow-2xl">
+          <div className="bg-white/[0.03] backdrop-blur-xl rounded-2xl p-8 border border-white/[0.06]">
             {/* Error Message */}
             {error && (
-              <div className="mb-6 p-4 bg-red-500/10 border border-red-500/30 rounded-lg">
+              <div className="mb-6 p-4 bg-red-500/10 border border-red-500/30 rounded-xl">
                 <p className="text-red-400 text-sm text-center font-medium">{error}</p>
               </div>
             )}
@@ -285,7 +279,7 @@ const VerifyEmail = () => {
                   value={manualEmail}
                   onChange={(e) => setManualEmail(e.target.value)}
                   placeholder="Enter your email"
-                  className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all duration-200"
+                  className="bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:border-purple-500/50 focus:ring-2 focus:ring-purple-500/10 transition-all duration-300 outline-none w-full"
                   required
                   disabled={loading}
                 />
@@ -294,27 +288,30 @@ const VerifyEmail = () => {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-3 rounded-lg font-semibold hover:shadow-lg hover:shadow-purple-500/20 transition-all duration-200 disabled:opacity-50"
+                className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-3 rounded-xl font-semibold hover:shadow-lg hover:shadow-purple-500/30 transition-all duration-300 disabled:opacity-50"
               >
                 {loading ? 'Sending...' : 'Send Verification Code'}
               </button>
             </form>
           </div>
-          </>
+          </div>
         )}
 
         {/* NORMAL VERIFICATION FORM */}
         {!showEmailInput && (
-          <>
+          <div className="animate-fade-in-up">
           {/* Header */}
           <div className="text-center mb-8">
             <div className="flex items-center justify-center space-x-2 mb-6">
               <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg flex items-center justify-center shadow-lg shadow-purple-500/50">
-                <span className="text-white font-bold text-sm">GG</span>
+                <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                </svg>
               </div>
               <span className="text-white text-2xl font-bold">Grand Gallery</span>
             </div>
-            <h1 className="text-3xl font-bold text-white mb-2">Verify Your Email</h1>
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent mb-2">Verify Your Email</h1>
+            <div className="w-12 h-1 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full mb-4 mx-auto" />
             <p className="text-gray-300 text-sm">
               We've sent a verification code to <br />
               <span className="text-purple-400 font-semibold">{email}</span>
@@ -322,17 +319,17 @@ const VerifyEmail = () => {
           </div>
 
           {/* Card */}
-          <div className="bg-white/5 backdrop-blur-xl rounded-2xl p-8 border border-white/10 shadow-2xl">
+          <div className="bg-white/[0.03] backdrop-blur-xl rounded-2xl p-8 border border-white/[0.06]">
           {/* Success Message */}
           {success && (
-            <div className="mb-6 p-4 bg-green-500/10 border border-green-500/30 rounded-lg">
+            <div className="mb-6 p-4 bg-green-500/10 border border-green-500/30 rounded-xl">
               <p className="text-green-400 text-sm text-center font-medium">{success}</p>
             </div>
           )}
 
           {/* Error Message */}
           {error && (
-            <div className="mb-6 p-4 bg-red-500/10 border border-red-500/30 rounded-lg">
+            <div className="mb-6 p-4 bg-red-500/10 border border-red-500/30 rounded-xl">
               <p className="text-red-400 text-sm text-center font-medium">{error}</p>
             </div>
           )}
@@ -353,7 +350,7 @@ const VerifyEmail = () => {
                     value={digit}
                     onChange={(e) => handleInputChange(index, e.target.value)}
                     onKeyDown={(e) => handleKeyDown(index, e)}
-                    className="w-12 h-14 text-center text-2xl font-bold bg-white/10 border-2 border-white/20 text-white rounded-lg focus:border-purple-500 focus:ring-2 focus:ring-purple-500 focus:outline-none transition-all duration-200 hover:border-white/30"
+                    className="w-12 h-14 text-center text-2xl font-bold bg-white/[0.04] border-2 border-white/[0.12] text-white rounded-xl focus:border-purple-500/50 focus:ring-2 focus:ring-purple-500/10 transition-all duration-300 outline-none hover:border-white/[0.2]"
                     placeholder="0"
                     disabled={loading}
                   />
@@ -365,7 +362,7 @@ const VerifyEmail = () => {
             <button
               type="submit"
               disabled={loading || verificationCode.some(d => !d)}
-              className="w-full py-3 px-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold rounded-lg hover:shadow-lg hover:shadow-purple-500/30 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full py-3 px-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold rounded-xl hover:shadow-lg hover:shadow-purple-500/30 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? 'Verifying...' : 'Verify Email'}
             </button>
@@ -386,7 +383,7 @@ const VerifyEmail = () => {
           </div>
 
           {/* Change Email */}
-          <div className="mt-8 pt-6 border-t border-white/10 text-center">
+          <div className="mt-8 pt-6 border-t border-white/[0.06] text-center">
             <p className="text-gray-400 text-sm mb-3">Wrong email address?</p>
             <button
               onClick={() => {
@@ -401,9 +398,12 @@ const VerifyEmail = () => {
         </div>
 
         {/* Info Box */}
-        <div className="mt-6 p-4 bg-blue-500/10 border border-blue-500/30 rounded-lg">
-          <p className="text-blue-300 text-xs text-center">
-            💡 The verification code will expire in 15 minutes. Check your spam folder if you can't find the email.
+        <div className="mt-6 p-4 bg-white/[0.03] backdrop-blur-xl rounded-2xl border border-white/[0.06]">
+          <p className="text-blue-300 text-xs text-center flex items-center justify-center">
+            <svg className="w-4 h-4 mr-2 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            The verification code will expire in 15 minutes. Check your spam folder if you can't find the email.
           </p>
         </div>
           </>

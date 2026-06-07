@@ -9,7 +9,6 @@ import { recommendationService } from "../../services/recommendationService";
 import { savedService } from "../../services/savedService";
 import { useNavigate } from "react-router-dom";
 import CommentsSection from "../../components/CommentsSection";
-import "./Discover.css";
 
 const Discover = () => {
   const navigate = useNavigate();
@@ -438,28 +437,105 @@ const Discover = () => {
 
   
 
+  const LikeIcon = ({ filled }) => (
+    <svg className="w-4 h-4" viewBox="0 0 24 24" fill={filled ? "currentColor" : "none"} stroke="currentColor" strokeWidth={2}>
+      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+    </svg>
+  );
+
+  const ViewIcon = () => (
+    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+      <circle cx="12" cy="12" r="3" />
+    </svg>
+  );
+
+  const SaveIcon = ({ filled }) => (
+    <svg className="w-4 h-4" viewBox="0 0 24 24" fill={filled ? "currentColor" : "none"} stroke="currentColor" strokeWidth={2}>
+      <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
+    </svg>
+  );
+
+  const SearchIcon = () => (
+    <svg className="w-5 h-5 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+      <circle cx="11" cy="11" r="8" />
+      <path d="M21 21l-4.35-4.35" />
+    </svg>
+  );
+
+  const HeartIcon = ({ filled }) => (
+    <svg className="w-5 h-5" viewBox="0 0 24 24" fill={filled ? "currentColor" : "none"} stroke="currentColor" strokeWidth={2}>
+      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+    </svg>
+  );
+
+  const BookmarkIcon = ({ filled }) => (
+    <svg className="w-5 h-5" viewBox="0 0 24 24" fill={filled ? "currentColor" : "none"} stroke="currentColor" strokeWidth={2}>
+      <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
+    </svg>
+  );
+
+  const CloseIcon = () => (
+    <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+      <path d="M18 6L6 18M6 6l12 12" />
+    </svg>
+  );
+
+  const ChevronLeftIcon = () => (
+    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+      <path d="M15 18l-6-6 6-6" />
+    </svg>
+  );
+
+  const ChevronRightIcon = () => (
+    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+      <path d="M9 18l6-6-6-6" />
+    </svg>
+  );
+
+  const SparklesIcon = () => (
+    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+      <path d="M12 3l1.5 5.5L19 10l-5.5 1.5L12 17l-1.5-5.5L5 10l5.5-1.5z" />
+      <path d="M18 5l1 2.5L21.5 7l-2.5 1L18 11l-1-2.5L14.5 7l2.5-1z" />
+    </svg>
+  );
+
+  const UserIcon = () => (
+    <svg className="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+      <circle cx="12" cy="7" r="4" />
+    </svg>
+  );
 
   if (loading) {
     return (
-      <div className="pt-20 pb-10 px-6">
-        <div className="container mx-auto text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mx-auto"></div>
-          <p className="text-gray-300 mt-4">Loading artworks...</p>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="flex flex-col items-center justify-center min-h-[60vh]">
+          <div className="relative">
+            <div className="w-14 h-14 border-4 border-white/10 rounded-full"></div>
+            <div className="absolute inset-0 w-14 h-14 border-4 border-transparent border-t-purple-500 rounded-full animate-spin"></div>
+          </div>
+          <p className="text-gray-300 mt-6 text-lg font-medium">Loading artworks...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="pt-20 pb-10 px-6">
-      <div className="container mx-auto">
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-white mb-4">Discover Artworks</h1>
-          <p className="text-gray-300 text-lg">Explore amazing artwork from our community</p>
-        </div>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      {/* Page Header */}
+      <div className="text-center mb-12">
+        <h1 className="text-4xl sm:text-5xl font-bold text-white mb-4">
+          Discover
+          <span className="bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent"> Artworks</span>
+        </h1>
+        <div className="w-24 h-1 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full mx-auto mb-4"></div>
+        <p className="text-gray-400 text-lg max-w-xl mx-auto">Explore amazing artwork from our creative community</p>
+      </div>
 
-        {/* Tabs */}
-        <div className="flex space-x-1 bg-white/5 rounded-2xl p-1 border border-white/10 mb-6 max-w-2xl mx-auto">
+      {/* Tabs */}
+      <div className="relative max-w-2xl mx-auto mb-8">
+        <div className="flex bg-white/5 backdrop-blur-sm rounded-2xl p-1.5 border border-white/10">
           {[
             { id: 'all', label: 'All Artworks' },
             { id: 'recommended', label: 'Recommended' },
@@ -468,466 +544,571 @@ const Discover = () => {
             <button
               key={tab.id}
               onClick={() => handleTabChange(tab.id)}
-              className={`flex-1 py-3 px-4 rounded-xl font-semibold transition-all duration-300 ${activeTab === tab.id
-                ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg'
-                : 'text-gray-300 hover:text-white hover:bg-white/5'
-                }`}
+              className={`relative flex-1 py-2.5 px-4 rounded-xl font-semibold text-sm transition-all duration-300 ${
+                activeTab === tab.id
+                  ? 'text-white'
+                  : 'text-gray-400 hover:text-gray-200'
+              }`}
             >
-              {tab.label}
-              {tab.id === 'recommended' && recommendationsLoading && (
-                <span className="ml-2 animate-spin">⟳</span>
+              {activeTab === tab.id && (
+                <span className="absolute inset-0 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 shadow-lg shadow-purple-500/20"></span>
               )}
+              <span className="relative z-10 flex items-center justify-center gap-2">
+                {tab.label}
+                {tab.id === 'recommended' && recommendationsLoading && (
+                  <span className="inline-block w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+                )}
+              </span>
             </button>
           ))}
         </div>
+      </div>
 
-        {/* Search Bar */}
-        <div className="max-w-2xl mx-auto mb-12">
-          <input
-            type="text"
-            placeholder={`Search ${activeTab === 'all' ? 'all' : activeTab} artworks...`}
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full bg-white/10 border border-white/20 rounded-full px-6 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
-          />
+      {/* Search Bar */}
+      <div className="max-w-xl mx-auto mb-10">
+        <div className="relative group">
+          <div className="absolute inset-0 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full opacity-0 group-focus-within:opacity-100 transition-opacity duration-300 blur-sm"></div>
+          <div className="relative flex items-center">
+            <div className="absolute left-5 pointer-events-none">
+              <SearchIcon />
+            </div>
+            <input
+              type="text"
+              placeholder={`Search ${activeTab === 'all' ? 'all' : activeTab} artworks...`}
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full bg-white/10 backdrop-blur-md border border-white/20 rounded-full pl-12 pr-6 py-3.5 text-white placeholder-gray-500 focus:outline-none focus:border-transparent transition-all duration-300 group-focus-within:bg-white/[0.15]"
+            />
+          </div>
         </div>
+      </div>
 
-        {/* Tab-specific messages */}
-        {activeTab === 'recommended' && user && (
-          <div className="max-w-2xl mx-auto mb-6 p-4 bg-purple-500/20 border border-purple-500/30 rounded-lg">
-            <p className="text-purple-200 text-center">
-              🎯 Personalized recommendations based on your likes and interests
-            </p>
+      {/* Tab-specific messages */}
+      {activeTab === 'recommended' && user && (
+        <div className="max-w-2xl mx-auto mb-8 p-4 bg-gradient-to-r from-purple-500/10 to-pink-500/10 border border-purple-500/20 rounded-2xl backdrop-blur-sm">
+          <p className="text-purple-300 text-center flex items-center justify-center gap-2">
+            <SparklesIcon />
+            Personalized recommendations based on your likes and interests
+          </p>
+        </div>
+      )}
+
+      {activeTab === 'recommended' && !user && (
+        <div className="max-w-2xl mx-auto mb-8 p-4 bg-gradient-to-r from-yellow-500/10 to-orange-500/10 border border-yellow-500/20 rounded-2xl backdrop-blur-sm">
+          <p className="text-yellow-300 text-center flex items-center justify-center gap-2">
+            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+              <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+            </svg>
+            Sign in to get personalized artwork recommendations
+          </p>
+        </div>
+      )}
+
+      {activeTab === 'following' && followingArtists.size === 0 && (
+        <div className="max-w-2xl mx-auto mb-8 p-4 bg-gradient-to-r from-blue-500/10 to-cyan-500/10 border border-blue-500/20 rounded-2xl backdrop-blur-sm">
+          <p className="text-blue-300 text-center flex items-center justify-center gap-2">
+            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+              <circle cx="9" cy="7" r="4" />
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+              <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+            </svg>
+            Follow artists to see their latest artworks here
+          </p>
+        </div>
+      )}
+
+      {error && (
+        <div className="max-w-2xl mx-auto mb-8 p-4 bg-gradient-to-r from-red-500/10 to-orange-500/10 border border-red-500/20 rounded-2xl backdrop-blur-sm">
+          <p className="text-red-300 text-center">{error}</p>
+        </div>
+      )}
+
+      {/* Loading States */}
+      {loading && activeTab === 'all' && (
+        <div className="text-center py-16">
+          <div className="relative inline-block">
+            <div className="w-14 h-14 border-4 border-white/10 rounded-full"></div>
+            <div className="absolute inset-0 w-14 h-14 border-4 border-transparent border-t-purple-500 rounded-full animate-spin"></div>
           </div>
-        )}
+          <p className="text-gray-300 mt-6 text-lg font-medium">Loading artworks...</p>
+        </div>
+      )}
 
-        {activeTab === 'recommended' && !user && (
-          <div className="max-w-2xl mx-auto mb-6 p-4 bg-yellow-500/20 border border-yellow-500/30 rounded-lg">
-            <p className="text-yellow-200 text-center">
-              🔐 Sign in to get personalized artwork recommendations
-            </p>
+      {recommendationsLoading && activeTab === 'recommended' && (
+        <div className="text-center py-16">
+          <div className="relative inline-block">
+            <div className="w-14 h-14 border-4 border-white/10 rounded-full"></div>
+            <div className="absolute inset-0 w-14 h-14 border-4 border-transparent border-t-purple-500 rounded-full animate-spin"></div>
           </div>
-        )}
+          <p className="text-gray-300 mt-6 text-lg font-medium">Finding personalized recommendations...</p>
+        </div>
+      )}
 
-        {activeTab === 'following' && followingArtists.size === 0 && (
-          <div className="max-w-2xl mx-auto mb-6 p-4 bg-blue-500/20 border border-blue-500/30 rounded-lg">
-            <p className="text-blue-200 text-center">
-              👥 Follow artists to see their latest artworks here
-            </p>
-          </div>
-        )}
+      {/* Artworks Grid */}
+      {!loading && !recommendationsLoading && artworksForDisplay.length > 0 && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {artworksForDisplay.map((artwork, index) => (
+            <div
+              key={artwork._id}
+              className="group bg-white/5 backdrop-blur-sm rounded-2xl border border-white/10 overflow-hidden cursor-pointer hover:-translate-y-1 transition-all duration-300 hover:shadow-xl hover:shadow-purple-500/5 animate-fade-in-up"
+              style={{ animationDelay: `${(index % 8) * 75}ms`, animationDuration: '400ms' }}
+              onClick={() => handleArtworkClick(artwork)}
+            >
+              {/* Image Container */}
+              <div className="relative overflow-hidden">
+                <img
+                  src={artwork.imageUrl}
+                  alt={artwork.title}
+                  className="w-full h-52 object-cover rounded-t-2xl group-hover:scale-105 transition-transform duration-500"
+                />
+                
+                {/* Gradient overlay */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
 
-        {error && (
-          <div className="max-w-2xl mx-auto mb-6 p-4 bg-yellow-500/20 border border-yellow-500/30 rounded-lg">
-            <p className="text-yellow-200 text-center">{error}</p>
-          </div>
-        )}
-
-        {/* Loading States */}
-        {loading && activeTab === 'all' && (
-          <div className="text-center py-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mx-auto"></div>
-            <p className="text-gray-300 mt-4">Loading artworks...</p>
-          </div>
-        )}
-
-        {recommendationsLoading && activeTab === 'recommended' && (
-          <div className="text-center py-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mx-auto"></div>
-            <p className="text-gray-300 mt-4">Finding personalized recommendations...</p>
-          </div>
-        )}
-
-        {/* Artworks Grid */}
-        {!loading && !recommendationsLoading && artworksForDisplay.length > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {artworksForDisplay.map((artwork) => (
-              <div
-                key={artwork._id}
-                className="bg-white/5 rounded-2xl p-6 border border-white/10 hover:border-white/20 transition-all duration-300 cursor-pointer transform hover:scale-105 relative"
-                onClick={() => handleArtworkClick(artwork)}
-              >
                 {/* Recommendation badge */}
                 {activeTab === 'recommended' && artwork.score > 0 && (
-                  <div className="absolute top-4 right-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white text-xs px-2 py-1 rounded-full z-10">
-                    🔥 Recommended
+                  <div className="absolute top-3 right-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white text-xs font-semibold px-3 py-1.5 rounded-full z-10 flex items-center gap-1 shadow-lg shadow-purple-500/30">
+                    <SparklesIcon />
+                    Recommended
                   </div>
                 )}
 
-                {/* ✅ SAVE BUTTON - Top Right */}
-                <div className="absolute top-4 left-4 z-10">
+                {/* ✅ SAVE BUTTON */}
+                <div className="absolute top-3 left-3 z-10">
                   <button
                     onClick={(e) => toggleSave(artwork._id, e)}
                     disabled={savingArtwork === artwork._id || !user}
-                    className={`p-2 rounded-full transition-all duration-300 ${
+                    className={`p-2 rounded-full transition-all duration-300 shadow-lg backdrop-blur-sm ${
                       artwork.isSaved 
-                        ? 'bg-yellow-500/90 text-white hover:bg-yellow-600' 
-                        : 'bg-black/50 text-white hover:bg-black/70'
+                        ? 'bg-yellow-500/90 text-white hover:bg-yellow-500' 
+                        : 'bg-black/40 text-white hover:bg-black/60'
                     } ${!user ? 'opacity-50 cursor-not-allowed' : ''}`}
                     title={artwork.isSaved ? "Remove from saved" : "Save artwork"}
                   >
                     {savingArtwork === artwork._id ? (
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current"></div>
+                      <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
                     ) : (
-                      <span>{artwork.isSaved ? '⭐' : '☆'}</span>
+                      <BookmarkIcon filled={artwork.isSaved} />
                     )}
                   </button>
                 </div>
 
-                <img
-                  src={artwork.imageUrl}
-                  alt={artwork.title}
-                  className="w-full h-48 object-cover rounded-lg mb-4"
-                />
-                <h3 className="text-white font-bold text-lg mb-2">{artwork.title}</h3>
+                {/* Category Badge */}
+                {artwork.category && (
+                  <div className="absolute bottom-3 left-3 z-10">
+                    <span className="bg-black/50 backdrop-blur-sm text-white text-xs font-medium px-3 py-1 rounded-full border border-white/10">
+                      {artwork.category}
+                    </span>
+                  </div>
+                )}
+              </div>
 
-                {/* Artist Info with Follow/Unfollow Buttons */}
-                <div className="flex items-center justify-between mb-2">
-                  <p className="text-gray-400">by {artwork.artistName}</p>
-                  {user && artwork.clerkUserId !== user.id && (
-                    <div className="flex space-x-2">
-                      {/* Follow Button - Shows when NOT following */}
-                      {artwork.isFollowing ? (
-                        <button onClick={(e) => toggleFollow(artwork.clerkUserId, artwork.artistName, e)} disabled={togglingFollow === artwork.clerkUserId} className="flex items-center space-x-1 px-3 py-1 rounded-full text-xs bg-blue-500/20 text-blue-400 border border-blue-500/30 hover:bg-red-500/20 hover:text-red-400 hover:border-red-500/30 transition-all duration-300 disabled:opacity-50">
-                          {togglingFollow === artwork.clerkUserId ? <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-current"></div> : <span>✓ Following</span>}
-                        </button>
-                      ) : (
-                        <button onClick={(e) => toggleFollow(artwork.clerkUserId, artwork.artistName, e)} disabled={togglingFollow === artwork.clerkUserId} className="flex items-center space-x-1 px-3 py-1 rounded-full text-xs bg-white/10 text-gray-300 border border-white/20 hover:bg-white/20 hover:text-white transition-all duration-300 disabled:opacity-50">
-                          {togglingFollow === artwork.clerkUserId ? <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-current"></div> : <span>+ Follow</span>}
-                        </button>
-                      )}
-                    </div>
-                  )}
+              {/* Content */}
+              <div className="p-4">
+                <h3 className="text-white font-bold text-base mb-1 truncate group-hover:text-purple-300 transition-colors duration-300">{artwork.title}</h3>
+
+                {/* Artist Avatar + Name */}
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="w-6 h-6 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-semibold text-xs flex-shrink-0">
+                    {artwork.artistName?.charAt(0)?.toUpperCase() || 'A'}
+                  </div>
+                  <p className="text-gray-400 text-sm truncate">{artwork.artistName}</p>
                 </div>
 
-                <p className="text-gray-300 text-sm mb-4 line-clamp-2">{artwork.description}</p>
-                <div className="flex justify-between items-center">
+                <p className="text-gray-500 text-sm mb-4 line-clamp-2 leading-relaxed">{artwork.description}</p>
+
+                {/* Stats Bar */}
+                <div className="flex items-center justify-between pt-3 border-t border-white/5">
                   <button
                     type="button"
                     onClick={(e) => handleLike(artwork._id, e)}
                     disabled={likingArtwork === artwork._id || !user}
-                    className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-all duration-300 ${artwork.hasLiked
-                      ? 'bg-red-500/20 text-red-400 border border-red-500/30 hover:bg-red-500/30'
-                      : 'bg-white/10 text-gray-300 border border-white/20 hover:bg-white/20 hover:text-white'
-                      } ${!user ? 'opacity-50 cursor-not-allowed' : ''}`}
-                  >
-                    {likingArtwork === artwork._id ? (
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current"></div>
-                    ) : (
-                      <span>{artwork.hasLiked ? '❤️' : '🤍'}</span>
-                    )}
-                    <span>{artwork.likesCount || 0}</span>
-                  </button>
-                  <span className="text-gray-400 text-sm flex items-center">
-                    👁️ {artwork.views || 0}
-                  </span>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* Pagination Controls */}
-        {!loading && !recommendationsLoading && artworksForDisplay.length > 0 && displayTotalPages > 1 && (
-          <div className="flex items-center justify-center gap-3 my-12">
-            <button
-              onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-              disabled={currentPage === 1}
-              className="px-4 py-2 bg-white/5 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-white/10 transition-all duration-200 border border-white/10"
-            >
-              ← Previous
-            </button>
-            
-            <div className="flex items-center gap-2">
-              {Array.from({ length: Math.min(5, displayTotalPages) }, (_, i) => {
-                let pageNum = i + 1;
-                if (displayTotalPages > 5 && currentPage > 3) {
-                  pageNum = currentPage - 2 + i;
-                  if (pageNum > displayTotalPages) pageNum = displayTotalPages - 4 + i;
-                }
-                
-                return (
-                  <button
-                    key={pageNum}
-                    onClick={() => setCurrentPage(pageNum)}
-                    className={`px-3 py-2 rounded-lg transition-all duration-200 font-medium ${
-                      currentPage === pageNum
-                        ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg'
-                        : 'bg-white/5 text-gray-300 hover:bg-white/10 border border-white/10'
-                    }`}
-                  >
-                    {pageNum}
-                  </button>
-                );
-              })}
-            </div>
-
-            <button
-              onClick={() => setCurrentPage(prev => Math.min(prev + 1, displayTotalPages))}
-              disabled={currentPage === displayTotalPages}
-              className="px-4 py-2 bg-white/5 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-white/10 transition-all duration-200 border border-white/10"
-            >
-              Next →
-            </button>
-
-            <span className="text-gray-400 text-sm ml-4">
-              Page {currentPage} of {displayTotalPages}
-            </span>
-          </div>
-        )}
-
-        {/* Empty States */}
-        {allFiltered.length === 0 && !loading && !recommendationsLoading && (
-          <div className="text-center py-12">
-            <div className="text-6xl mb-4 opacity-50">
-              {activeTab === 'recommended' ? '🎯' :
-                activeTab === 'following' ? '👥' : '🎨'}
-            </div>
-            <h3 className="text-xl font-bold text-white mb-2">
-              {activeTab === 'recommended' ? 'No Recommendations Yet' :
-                activeTab === 'following' ? 'Not Following Any Artists' :
-                  'No Artworks Found'}
-            </h3>
-            <p className="text-gray-400 mb-6">
-              {activeTab === 'recommended' ? 'Like some artworks to get personalized recommendations' :
-                activeTab === 'following' ? 'Follow artists to see their latest creations here' :
-                  'Try adjusting your search terms or browse all artworks'}
-            </p>
-            {activeTab === 'recommended' && (
-              <button
-                onClick={() => setActiveTab('all')}
-                className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-6 py-3 rounded-full font-semibold hover:shadow-lg hover:shadow-purple-500/30 transition-all duration-300"
-              >
-                Browse All Artworks
-              </button>
-            )}
-            {activeTab === 'following' && (
-              <button
-                onClick={() => setActiveTab('all')}
-                className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-6 py-3 rounded-full font-semibold hover:shadow-lg hover:shadow-purple-500/30 transition-all duration-300"
-              >
-                Discover Artists
-              </button>
-            )}
-          </div>
-        )}
-
-        {/* Artwork Detail Modal */}
-        {isModalOpen && selectedArtwork && (
-          <div
-            className="fixed inset-0 bg-black/90 backdrop-blur-sm z-50 flex items-center justify-center p-2 sm:p-4"
-            onClick={handleBackdropClick}
-          >
-            <div className="bg-gray-900 rounded-2xl max-w-5xl w-full max-h-[95vh] overflow-y-auto border border-white/10">
-              {/* Close Button */}
-              <button
-                onClick={closeModal}
-                className="absolute top-3 right-3 z-20 bg-black/60 hover:bg-black/80 text-white rounded-full p-2 transition-all duration-300 shadow-lg"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-
-              {/* Artwork Image - Full width, full artwork visible */}
-              <div className="relative w-full bg-gray-800 flex items-center justify-center" style={{ minHeight: '50vh', maxHeight: '70vh' }}>
-                <img
-                  src={selectedArtwork.imageUrl}
-                  alt={selectedArtwork.title}
-                  className="w-full h-full object-contain p-4"
-                  style={{ maxHeight: '70vh' }}
-                />
-                {/* Save Button */}
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    toggleSave(selectedArtwork._id, e);
-                  }}
-                  disabled={savingArtwork === selectedArtwork._id || !user}
-                  className={`absolute top-3 left-3 z-10 px-4 py-2 rounded-full transition-all duration-300 shadow-lg text-sm font-medium ${
-                    selectedArtwork.isSaved 
-                      ? 'bg-yellow-500 text-white hover:bg-yellow-600' 
-                      : 'bg-white/10 text-white hover:bg-white/20'
-                  } ${!user ? 'opacity-50 cursor-not-allowed' : ''}`}
-                >
-                  {savingArtwork === selectedArtwork._id ? (
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current"></div>
-                  ) : (
-                    <span className="flex items-center gap-1.5">
-                      <span>{selectedArtwork.isSaved ? '⭐' : '☆'}</span>
-                      <span>{selectedArtwork.isSaved ? 'Saved' : 'Save'}</span>
-                    </span>
-                  )}
-                </button>
-              </div>
-
-              {/* Artwork Details */}
-              <div className="p-4 sm:p-6 space-y-4">
-                {/* Title & Artist Row */}
-                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
-                  <div className="flex-1 min-w-0">
-                    <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-white truncate">
-                      {selectedArtwork.title}
-                    </h2>
-                    <div className="flex items-center gap-2 mt-1">
-                      <div className="w-7 h-7 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white font-semibold text-xs flex-shrink-0">
-                        {selectedArtwork.artistName?.charAt(0) || 'A'}
-                      </div>
-                      <p className="text-gray-300 font-medium truncate">by {selectedArtwork.artistName}</p>
-                      {selectedArtwork.category && (
-                        <span className="text-gray-500 text-sm hidden sm:inline">· {selectedArtwork.category}</span>
-                      )}
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    {user && selectedArtwork.clerkUserId !== user.id && (
-                      selectedArtwork.isFollowing ? (
-                        <button onClick={(e) => toggleFollow(selectedArtwork.clerkUserId, selectedArtwork.artistName, e)} disabled={togglingFollow === selectedArtwork.clerkUserId} className="px-4 py-1.5 bg-green-600 text-white rounded-full hover:bg-green-700 disabled:opacity-50 transition-colors text-sm font-medium">
-                          {togglingFollow === selectedArtwork.clerkUserId ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div> : <span>✓ Following</span>}
-                        </button>
-                      ) : (
-                        <button onClick={(e) => toggleFollow(selectedArtwork.clerkUserId, selectedArtwork.artistName, e)} disabled={togglingFollow === selectedArtwork.clerkUserId} className="px-4 py-1.5 bg-indigo-600 text-white rounded-full hover:bg-indigo-700 disabled:opacity-50 transition-colors text-sm font-medium">
-                          {togglingFollow === selectedArtwork.clerkUserId ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div> : <span>+ Follow</span>}
-                        </button>
-                      )
-                    )}
-                    {user && selectedArtwork.clerkUserId === user.id && (
-                      <span className="text-xs text-green-400 font-medium bg-green-400/10 px-3 py-1 rounded-full">Your artwork</span>
-                    )}
-                  </div>
-                </div>
-
-                {/* Description */}
-                {selectedArtwork.description && (
-                  <p className="text-gray-300 leading-relaxed text-sm sm:text-base">
-                    {selectedArtwork.description}
-                  </p>
-                )}
-
-                {/* Tags */}
-                {selectedArtwork.tags && selectedArtwork.tags.length > 0 && (
-                  <div className="flex flex-wrap gap-2">
-                    {selectedArtwork.tags.map((tag, index) => (
-                      <span
-                        key={index}
-                        className="bg-purple-600/20 text-purple-300 px-3 py-1 rounded-full text-xs border border-purple-500/30"
-                      >
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
-                )}
-
-                {/* Action Bar */}
-                <div className="flex flex-wrap items-center gap-3 pt-3 border-t border-white/10">
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleLike(selectedArtwork._id, e);
-                    }}
-                    disabled={likingArtwork === selectedArtwork._id || !user}
-                    className={`flex items-center gap-1.5 px-4 py-2 rounded-full transition-all duration-300 text-sm font-medium ${
-                      selectedArtwork.hasLiked
-                        ? 'bg-red-500/20 text-red-400 border border-red-500/30'
-                        : 'bg-white/10 text-gray-300 hover:bg-white/20 border border-white/10'
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all duration-300 text-sm ${
+                      artwork.hasLiked
+                        ? 'text-red-400 bg-red-500/10'
+                        : 'text-gray-400 hover:text-gray-200 hover:bg-white/5'
                     } ${!user ? 'opacity-50 cursor-not-allowed' : ''}`}
                   >
-                    {likingArtwork === selectedArtwork._id ? (
-                      <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
+                    {likingArtwork === artwork._id ? (
+                      <div className="w-3.5 h-3.5 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
                     ) : (
-                      <span>{selectedArtwork.hasLiked ? '❤️' : '🤍'}</span>
+                      <LikeIcon filled={artwork.hasLiked} />
                     )}
-                    <span>{selectedArtwork.likesCount || 0} Likes</span>
+                    <span className="text-xs font-medium">{artwork.likesCount || 0}</span>
                   </button>
 
-                  <div className="flex items-center gap-1.5 text-gray-400 text-sm">
-                    <span>👁️</span>
-                    <span>{selectedArtwork.views || 0} Views</span>
+                  <div className="flex items-center gap-1.5 text-gray-500 text-sm">
+                    <SaveIcon filled={false} />
+                    <span className="text-xs">{artwork.isSaved ? 'Saved' : 'Save'}</span>
                   </div>
 
-                  <span className="text-gray-500 text-sm">· {new Date(selectedArtwork.createdAt).toLocaleDateString()}</span>
-
-                  {selectedArtwork.dimensions && (
-                    <span className="text-gray-500 text-sm hidden sm:inline">· {selectedArtwork.dimensions.width}×{selectedArtwork.dimensions.height} {selectedArtwork.dimensions.unit}</span>
-                  )}
-
-                  {message && (
-                    <span className={`text-sm px-3 py-1 rounded-full ${
-                      message.includes('❌') ? 'bg-red-500/20 text-red-400' : 'bg-green-500/20 text-green-400'
-                    }`}>
-                      {message}
-                    </span>
-                  )}
+                  <div className="flex items-center gap-1.5 text-gray-500 text-sm">
+                    <ViewIcon />
+                    <span className="text-xs">{artwork.views || 0}</span>
+                  </div>
                 </div>
 
-                {/* Add to Collection */}
-                {user && selectedArtwork.clerkUserId === user.id && (
-                  <div className="relative">
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setShowCollectionDropdown(!showCollectionDropdown);
-                      }}
-                      className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-full transition-all duration-300 text-sm font-medium border border-white/10"
-                    >
-                      📁 Add to Collection
-                    </button>
-
-                    {showCollectionDropdown && (
-                      <div className="absolute top-full left-0 mt-2 w-72 bg-gray-800 border border-white/10 rounded-xl shadow-2xl z-30">
-                        <div className="flex items-center justify-between px-4 py-3 border-b border-white/10">
-                          <h4 className="text-white font-medium text-sm">Add to Collection</h4>
-                          <button onClick={() => setShowCollectionDropdown(false)} className="text-gray-400 hover:text-white text-lg leading-none">&times;</button>
-                        </div>
-                        <div className="max-h-48 overflow-y-auto py-1">
-                          {userCollections.length > 0 ? (
-                            userCollections.map(collection => (
-                              <button
-                                key={collection._id}
-                                onClick={() => handleAddToCollection(collection._id, collection.name)}
-                                disabled={addingToCollection === collection._id}
-                                className="flex items-center gap-3 w-full px-4 py-2.5 hover:bg-white/5 transition-colors text-left disabled:opacity-50"
-                              >
-                                {addingToCollection === collection._id ? (
-                                  <div className="w-4 h-4 border-2 border-purple-400 border-t-transparent rounded-full animate-spin flex-shrink-0"></div>
-                                ) : (
-                                  <span className="flex-shrink-0">🖼️</span>
-                                )}
-                                <div className="flex-1 min-w-0">
-                                  <span className="block text-white text-sm truncate">{collection.name}</span>
-                                  <span className="block text-gray-400 text-xs">{collection.artworks?.length || 0} artworks</span>
-                                </div>
-                                {collection.artworks?.includes(selectedArtwork._id) && (
-                                  <span className="text-green-400 text-sm flex-shrink-0">✓</span>
-                                )}
-                              </button>
-                            ))
-                          ) : (
-                            <div className="px-4 py-6 text-center text-gray-400 text-sm">No collections yet</div>
-                          )}
-                        </div>
-                        <div className="px-4 py-3 border-t border-white/10">
-                          <button onClick={handleCreateNewCollection} className="w-full py-2 bg-purple-600/20 hover:bg-purple-600/30 text-purple-400 rounded-lg transition-colors text-sm font-medium border border-purple-500/30">
-                            + Create New Collection
-                          </button>
-                        </div>
-                      </div>
+                {/* Artist Row with Follow */}
+                {user && artwork.clerkUserId !== user.id && (
+                  <div className="mt-3 pt-3 border-t border-white/5">
+                    {artwork.isFollowing ? (
+                      <button onClick={(e) => toggleFollow(artwork.clerkUserId, artwork.artistName, e)} disabled={togglingFollow === artwork.clerkUserId} className="flex items-center justify-center gap-1.5 w-full py-2 rounded-xl text-xs font-medium bg-green-500/10 text-green-400 border border-green-500/20 hover:bg-red-500/10 hover:text-red-400 hover:border-red-500/20 transition-all duration-300 disabled:opacity-50">
+                        {togglingFollow === artwork.clerkUserId ? <div className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin"></div> : (
+                          <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                            <path d="M20 6L9 17l-5-5" />
+                          </svg>
+                        )}
+                        <span>Following</span>
+                      </button>
+                    ) : (
+                      <button onClick={(e) => toggleFollow(artwork.clerkUserId, artwork.artistName, e)} disabled={togglingFollow === artwork.clerkUserId} className="flex items-center justify-center gap-1.5 w-full py-2 rounded-xl text-xs font-medium bg-white/5 text-gray-400 border border-white/10 hover:bg-purple-500/10 hover:text-purple-300 hover:border-purple-500/30 transition-all duration-300 disabled:opacity-50">
+                        {togglingFollow === artwork.clerkUserId ? <div className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin"></div> : (
+                          <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                            <path d="M12 5v14M5 12h14" />
+                          </svg>
+                        )}
+                        <span>Follow</span>
+                      </button>
                     )}
                   </div>
                 )}
-
-                {user && selectedArtwork.clerkUserId !== user.id && (
-                  <p className="text-gray-500 text-xs">You can only add your own artworks to collections</p>
-                )}
-
-                {/* Comments Section */}
-                <CommentsSection artworkId={selectedArtwork._id} />
               </div>
             </div>
+          ))}
+        </div>
+      )}
+
+      {/* Pagination Controls */}
+      {!loading && !recommendationsLoading && artworksForDisplay.length > 0 && displayTotalPages > 1 && (
+        <div className="flex items-center justify-center gap-3 my-12">
+          <button
+            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+            disabled={currentPage === 1}
+            className="flex items-center gap-1.5 px-4 py-2.5 bg-white/5 text-gray-300 rounded-xl disabled:opacity-40 disabled:cursor-not-allowed hover:bg-white/10 transition-all duration-200 border border-white/10 text-sm font-medium"
+          >
+            <ChevronLeftIcon />
+            Previous
+          </button>
+          
+          <div className="flex items-center gap-1.5">
+            {Array.from({ length: Math.min(5, displayTotalPages) }, (_, i) => {
+              let pageNum = i + 1;
+              if (displayTotalPages > 5 && currentPage > 3) {
+                pageNum = currentPage - 2 + i;
+                if (pageNum > displayTotalPages) pageNum = displayTotalPages - 4 + i;
+              }
+              
+              return (
+                <button
+                  key={pageNum}
+                  onClick={() => setCurrentPage(pageNum)}
+                  className={`w-10 h-10 rounded-xl transition-all duration-200 font-semibold text-sm ${
+                    currentPage === pageNum
+                      ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg shadow-purple-500/20'
+                      : 'bg-white/5 text-gray-400 hover:bg-white/10 border border-white/10'
+                  }`}
+                >
+                  {pageNum}
+                </button>
+              );
+            })}
           </div>
-        )}
-      </div>
+
+          <button
+            onClick={() => setCurrentPage(prev => Math.min(prev + 1, displayTotalPages))}
+            disabled={currentPage === displayTotalPages}
+            className="flex items-center gap-1.5 px-4 py-2.5 bg-white/5 text-gray-300 rounded-xl disabled:opacity-40 disabled:cursor-not-allowed hover:bg-white/10 transition-all duration-200 border border-white/10 text-sm font-medium"
+          >
+            Next
+            <ChevronRightIcon />
+          </button>
+
+          <span className="text-gray-500 text-sm ml-2">
+            Page {currentPage} of {displayTotalPages}
+          </span>
+        </div>
+      )}
+
+      {/* Empty States */}
+      {allFiltered.length === 0 && !loading && !recommendationsLoading && (
+        <div className="text-center py-16 max-w-md mx-auto">
+          <div className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center">
+            <svg className="w-10 h-10 text-gray-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
+              {activeTab === 'recommended' ? (
+                <path d="M12 3l1.5 5.5L19 10l-5.5 1.5L12 17l-1.5-5.5L5 10l5.5-1.5z" />
+              ) : activeTab === 'following' ? (
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+              ) : (
+                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
+              )}
+            </svg>
+          </div>
+          <h3 className="text-xl font-bold text-white mb-2">
+            {activeTab === 'recommended' ? 'No Recommendations Yet' :
+              activeTab === 'following' ? 'Not Following Any Artists' :
+                'No Artworks Found'}
+          </h3>
+          <p className="text-gray-400 mb-8">
+            {activeTab === 'recommended' ? 'Like some artworks to get personalized recommendations' :
+              activeTab === 'following' ? 'Follow artists to see their latest creations here' :
+                'Try adjusting your search terms or browse all artworks'}
+          </p>
+          {activeTab === 'recommended' && (
+            <button
+              onClick={() => setActiveTab('all')}
+              className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-8 py-3 rounded-full font-semibold hover:shadow-lg hover:shadow-purple-500/30 transition-all duration-300"
+            >
+              Browse All Artworks
+            </button>
+          )}
+          {activeTab === 'following' && (
+            <button
+              onClick={() => setActiveTab('all')}
+              className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-8 py-3 rounded-full font-semibold hover:shadow-lg hover:shadow-purple-500/30 transition-all duration-300"
+            >
+              Discover Artists
+            </button>
+          )}
+        </div>
+      )}
+
+      {/* Artwork Detail Modal */}
+      {isModalOpen && selectedArtwork && (
+        <div
+          className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-2 sm:p-4"
+          onClick={handleBackdropClick}
+        >
+          <div className="relative bg-gradient-to-b from-gray-900 to-gray-950 rounded-2xl max-w-5xl w-full max-h-[95vh] overflow-y-auto border border-white/10 shadow-2xl shadow-purple-500/5">
+            {/* Close Button */}
+            <button
+              onClick={closeModal}
+              className="absolute top-4 right-4 z-20 bg-black/60 hover:bg-black/80 text-white rounded-full p-2 transition-all duration-300 shadow-lg backdrop-blur-sm"
+            >
+              <CloseIcon />
+            </button>
+
+            {/* Artwork Image */}
+            <div className="relative w-full bg-gray-800/50 flex items-center justify-center" style={{ minHeight: '50vh', maxHeight: '70vh' }}>
+              <img
+                src={selectedArtwork.imageUrl}
+                alt={selectedArtwork.title}
+                className="w-full h-full object-contain p-4"
+                style={{ maxHeight: '70vh' }}
+              />
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  toggleSave(selectedArtwork._id, e);
+                }}
+                disabled={savingArtwork === selectedArtwork._id || !user}
+                className={`absolute top-4 left-4 z-10 px-4 py-2 rounded-full transition-all duration-300 shadow-lg text-sm font-medium backdrop-blur-sm ${
+                  selectedArtwork.isSaved 
+                    ? 'bg-yellow-500/90 text-white hover:bg-yellow-500' 
+                    : 'bg-black/40 text-white hover:bg-black/60 border border-white/10'
+                } ${!user ? 'opacity-50 cursor-not-allowed' : ''}`}
+              >
+                {savingArtwork === selectedArtwork._id ? (
+                  <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
+                ) : (
+                  <span className="flex items-center gap-1.5">
+                    <BookmarkIcon filled={selectedArtwork.isSaved} />
+                    <span>{selectedArtwork.isSaved ? 'Saved' : 'Save'}</span>
+                  </span>
+                )}
+              </button>
+            </div>
+
+            {/* Artwork Details */}
+            <div className="p-4 sm:p-6 space-y-4">
+              {/* Title & Artist Row */}
+              <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+                <div className="flex-1 min-w-0">
+                  <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-white truncate">
+                    {selectedArtwork.title}
+                  </h2>
+                  <div className="flex items-center gap-2 mt-2">
+                    <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white font-semibold text-xs flex-shrink-0 shadow-lg shadow-purple-500/20">
+                      {selectedArtwork.artistName?.charAt(0)?.toUpperCase() || 'A'}
+                    </div>
+                    <p className="text-gray-300 font-medium truncate">by {selectedArtwork.artistName}</p>
+                    {selectedArtwork.category && (
+                      <span className="text-gray-500 text-sm hidden sm:inline">· {selectedArtwork.category}</span>
+                    )}
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  {user && selectedArtwork.clerkUserId !== user.id && (
+                    selectedArtwork.isFollowing ? (
+                      <button onClick={(e) => toggleFollow(selectedArtwork.clerkUserId, selectedArtwork.artistName, e)} disabled={togglingFollow === selectedArtwork.clerkUserId} className="flex items-center gap-1.5 px-4 py-1.5 bg-green-600 text-white rounded-full hover:bg-green-700 disabled:opacity-50 transition-colors text-sm font-medium shadow-lg shadow-green-600/20">
+                        {togglingFollow === selectedArtwork.clerkUserId ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div> : (
+                          <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                            <path d="M20 6L9 17l-5-5" />
+                          </svg>
+                        )}
+                        <span>Following</span>
+                      </button>
+                    ) : (
+                      <button onClick={(e) => toggleFollow(selectedArtwork.clerkUserId, selectedArtwork.artistName, e)} disabled={togglingFollow === selectedArtwork.clerkUserId} className="flex items-center gap-1.5 px-4 py-1.5 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-full hover:shadow-lg hover:shadow-purple-500/30 disabled:opacity-50 transition-all duration-300 text-sm font-medium">
+                        {togglingFollow === selectedArtwork.clerkUserId ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div> : (
+                          <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                            <path d="M12 5v14M5 12h14" />
+                          </svg>
+                        )}
+                        <span>Follow</span>
+                      </button>
+                    )
+                  )}
+                  {user && selectedArtwork.clerkUserId === user.id && (
+                    <span className="text-xs text-green-400 font-medium bg-green-400/10 px-3 py-1.5 rounded-full border border-green-500/20">Your artwork</span>
+                  )}
+                </div>
+              </div>
+
+              {/* Description */}
+              {selectedArtwork.description && (
+                <p className="text-gray-300 leading-relaxed text-sm sm:text-base">
+                  {selectedArtwork.description}
+                </p>
+              )}
+
+              {/* Tags */}
+              {selectedArtwork.tags && selectedArtwork.tags.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  {selectedArtwork.tags.map((tag, index) => (
+                    <span
+                      key={index}
+                      className="bg-purple-500/10 text-purple-300 px-3 py-1 rounded-full text-xs border border-purple-500/20"
+                    >
+                      #{tag}
+                    </span>
+                  ))}
+                </div>
+              )}
+
+              {/* Action Bar */}
+              <div className="flex flex-wrap items-center gap-3 pt-4 border-t border-white/10">
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleLike(selectedArtwork._id, e);
+                  }}
+                  disabled={likingArtwork === selectedArtwork._id || !user}
+                  className={`flex items-center gap-1.5 px-4 py-2 rounded-full transition-all duration-300 text-sm font-medium ${
+                    selectedArtwork.hasLiked
+                      ? 'bg-red-500/10 text-red-400 border border-red-500/20'
+                      : 'bg-white/5 text-gray-400 hover:text-gray-200 border border-white/10 hover:bg-white/10'
+                  } ${!user ? 'opacity-50 cursor-not-allowed' : ''}`}
+                >
+                  {likingArtwork === selectedArtwork._id ? (
+                    <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
+                  ) : (
+                    <HeartIcon filled={selectedArtwork.hasLiked} />
+                  )}
+                  <span>{selectedArtwork.likesCount || 0} Likes</span>
+                </button>
+
+                <div className="flex items-center gap-1.5 text-gray-400 text-sm">
+                  <ViewIcon />
+                  <span>{selectedArtwork.views || 0} Views</span>
+                </div>
+
+                <span className="text-gray-500 text-sm">· {new Date(selectedArtwork.createdAt).toLocaleDateString()}</span>
+
+                {selectedArtwork.dimensions && (
+                  <span className="text-gray-500 text-sm hidden sm:inline">· {selectedArtwork.dimensions.width}×{selectedArtwork.dimensions.height} {selectedArtwork.dimensions.unit}</span>
+                )}
+
+                {message && (
+                  <span className={`text-sm px-3 py-1 rounded-full ${
+                    message.includes('❌') ? 'bg-red-500/10 text-red-400 border border-red-500/20' : 'bg-green-500/10 text-green-400 border border-green-500/20'
+                  }`}>
+                    {message}
+                  </span>
+                )}
+              </div>
+
+              {/* Add to Collection */}
+              {user && selectedArtwork.clerkUserId === user.id && (
+                <div className="relative">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowCollectionDropdown(!showCollectionDropdown);
+                    }}
+                    className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 text-gray-200 rounded-full transition-all duration-300 text-sm font-medium border border-white/10"
+                  >
+                    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                      <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
+                    </svg>
+                    Add to Collection
+                  </button>
+
+                  {showCollectionDropdown && (
+                    <div className="absolute top-full left-0 mt-2 w-72 bg-gray-800/95 backdrop-blur-md border border-white/10 rounded-xl shadow-2xl z-30">
+                      <div className="flex items-center justify-between px-4 py-3 border-b border-white/10">
+                        <h4 className="text-white font-medium text-sm">Add to Collection</h4>
+                        <button onClick={() => setShowCollectionDropdown(false)} className="text-gray-400 hover:text-white transition-colors">
+                          <CloseIcon />
+                        </button>
+                      </div>
+                      <div className="max-h-48 overflow-y-auto py-1">
+                        {userCollections.length > 0 ? (
+                          userCollections.map(collection => (
+                            <button
+                              key={collection._id}
+                              onClick={() => handleAddToCollection(collection._id, collection.name)}
+                              disabled={addingToCollection === collection._id}
+                              className="flex items-center gap-3 w-full px-4 py-2.5 hover:bg-white/5 transition-colors text-left disabled:opacity-50"
+                            >
+                              {addingToCollection === collection._id ? (
+                                <div className="w-4 h-4 border-2 border-purple-400 border-t-transparent rounded-full animate-spin flex-shrink-0"></div>
+                              ) : (
+                                <svg className="w-4 h-4 text-purple-400 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                                  <line x1="12" y1="8" x2="12" y2="16" />
+                                  <line x1="8" y1="12" x2="16" y2="12" />
+                                </svg>
+                              )}
+                              <div className="flex-1 min-w-0">
+                                <span className="block text-white text-sm truncate">{collection.name}</span>
+                                <span className="block text-gray-400 text-xs">{collection.artworks?.length || 0} artworks</span>
+                              </div>
+                              {collection.artworks?.includes(selectedArtwork._id) && (
+                                <span className="text-green-400 text-sm flex-shrink-0">
+                                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                                    <path d="M20 6L9 17l-5-5" />
+                                  </svg>
+                                </span>
+                              )}
+                            </button>
+                          ))
+                        ) : (
+                          <div className="px-4 py-6 text-center text-gray-400 text-sm">No collections yet</div>
+                        )}
+                      </div>
+                      <div className="px-4 py-3 border-t border-white/10">
+                        <button onClick={handleCreateNewCollection} className="w-full py-2 bg-purple-600/20 hover:bg-purple-600/30 text-purple-400 rounded-lg transition-colors text-sm font-medium border border-purple-500/30">
+                          + Create New Collection
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {user && selectedArtwork.clerkUserId !== user.id && (
+                <p className="text-gray-500 text-xs">You can only add your own artworks to collections</p>
+              )}
+
+              {/* Comments Section */}
+              <CommentsSection artworkId={selectedArtwork._id} />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

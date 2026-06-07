@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { UserButton, useUser, SignedIn, SignedOut } from '@clerk/clerk-react';
 
@@ -6,144 +6,156 @@ const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
   const { user } = useUser();
 
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 20);
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
   const navItems = [
-    { id: 'discover', label: 'Discover', icon: '🔍', color: 'from-blue-500 to-cyan-500', path: '/discover' },
-    { id: 'collections', label: 'Collections', icon: '🖼️', color: 'from-purple-500 to-pink-500', path: '/collections' },
-    { id: 'saved', label: 'Saved', icon: '⭐', color: 'from-red-500 to-orange-500', path: '/saved' },
-    { id: 'dashboard', label: 'Dashboard', icon: '📊', color: 'from-green-500 to-emerald-500', path: '/dashboard' },
+    { id: 'discover', label: 'Discover', path: '/discover' },
+    { id: 'collections', label: 'Collections', path: '/collections' },
+    { id: 'saved', label: 'Saved', path: '/saved' },
+    { id: 'dashboard', label: 'Dashboard', path: '/dashboard' },
   ];
 
   const isActive = (path) => {
-    if (path === '/discover' || path === '/') {
+    if (path === '/discover') {
       return location.pathname === '/' || location.pathname === '/discover';
     }
     return location.pathname === path;
   };
 
   const getUserInitial = () => {
-    if (user?.firstName) {
-      return user.firstName.charAt(0).toUpperCase();
-    }
+    if (user?.firstName) return user.firstName.charAt(0).toUpperCase();
     return 'U';
   };
 
   return (
-    <header className="fixed top-0 w-full z-50 bg-black/95 backdrop-blur-xl border-b border-white/10">
+    <header className={`fixed top-0 w-full z-50 transition-all duration-500 ${
+      scrolled
+        ? 'bg-gray-950/80 backdrop-blur-xl border-b border-white/[0.06] shadow-[0_4px_30px_rgba(0,0,0,0.3)]'
+        : 'bg-transparent'
+    }`}>
       <div className="w-full px-4 py-3">
         <div className="flex items-center justify-between">
-          {/* Logo */}
-          <Link to="/" className="flex items-center space-x-3 cursor-pointer flex-shrink-0">
-            <div className="w-9 h-9 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg flex items-center justify-center shadow-lg shadow-purple-500/25">
-              <span className="text-white font-bold text-sm">AH</span>
+          <Link to="/" className="flex items-center space-x-3 cursor-pointer flex-shrink-0 group">
+            <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center shadow-lg shadow-purple-500/25 group-hover:shadow-purple-500/40 transition-shadow duration-300">
+              <span className="text-white font-bold text-lg">AH</span>
             </div>
-            <span className="text-white text-xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+            <span className="text-white text-xl font-bold bg-gradient-to-r from-purple-400 via-pink-400 to-purple-400 bg-clip-text text-transparent bg-[length:200%_auto] animate-gradient">
               ArtHive
             </span>
           </Link>
 
-          {/* Desktop Navigation */}
           <SignedIn>
-            <nav className="hidden lg:flex items-center space-x-1 bg-white/5 rounded-2xl p-1 border border-white/10 mx-8">
+            <nav className="hidden lg:flex items-center space-x-1 bg-white/[0.03] backdrop-blur-sm rounded-2xl p-1 border border-white/[0.06] mx-8">
               {navItems.map((item) => (
                 <Link
                   key={item.id}
                   to={item.path}
-                  className={`relative flex items-center space-x-2 px-4 py-2.5 rounded-xl font-medium transition-all duration-300 ${
+                  className={`relative px-5 py-2.5 rounded-xl font-medium text-sm transition-all duration-300 ${
                     isActive(item.path)
-                      ? `text-white bg-gradient-to-r ${item.color} shadow-lg`
-                      : 'text-gray-300 hover:text-white hover:bg-white/5'
+                      ? 'text-white bg-gradient-to-r from-purple-600/80 to-pink-600/80 shadow-lg shadow-purple-500/20'
+                      : 'text-gray-400 hover:text-white hover:bg-white/[0.06]'
                   }`}
                 >
-                  <span className="text-sm">{item.icon}</span>
-                  <span className="text-sm">{item.label}</span>
+                  {item.label}
                   {isActive(item.path) && (
-                    <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-white rounded-full"></div>
+                    <span className="absolute -bottom-px left-1/2 -translate-x-1/2 w-8 h-[2px] bg-gradient-to-r from-purple-400 to-pink-400 rounded-full" />
                   )}
                 </Link>
               ))}
             </nav>
           </SignedIn>
 
-          {/* Right Side Actions */}
           <div className="hidden md:flex items-center space-x-3 flex-shrink-0">
             <SignedIn>
-              {/* Upload Button */}
-              <Link 
+              <Link
                 to="/upload"
-                className="group relative bg-gradient-to-r from-purple-600 to-pink-600 text-white px-5 py-2.5 rounded-full font-semibold text-sm hover:shadow-2xl hover:shadow-purple-500/30 transition-all duration-300 flex items-center space-x-2 overflow-hidden"
+                className="group relative bg-gradient-to-r from-purple-600 to-pink-600 text-white px-5 py-2.5 rounded-full font-semibold text-sm transition-all duration-300 flex items-center space-x-2 overflow-hidden hover:shadow-xl hover:shadow-purple-500/30"
               >
-                <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                <span className="text-lg font-bold">+</span>
-                <span>Upload</span>
+                <div className="absolute inset-0 bg-gradient-to-r from-white/15 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                <span className="text-lg font-bold relative z-10">+</span>
+                <span className="relative z-10">Upload</span>
               </Link>
 
-              {/* User Profile with Dropdown */}
               <div className="relative">
-                <button 
+                <button
                   onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
-                  className="flex items-center space-x-3 p-2 rounded-xl hover:bg-white/5 transition-all duration-300 group"
+                  className="flex items-center space-x-3 p-1.5 pr-3 rounded-xl hover:bg-white/[0.06] transition-all duration-300 group border border-transparent hover:border-white/[0.06]"
                 >
-                  <span className="text-gray-300 text-sm group-hover:text-white">
+                  <span className="text-gray-400 text-sm group-hover:text-white transition-colors">
                     Hi, {user?.firstName || 'User'}
                   </span>
                   <div className="flex items-center space-x-2">
-                    <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white font-semibold text-sm border-2 border-white/20">
+                    <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white font-semibold text-sm ring-2 ring-white/10">
                       {getUserInitial()}
                     </div>
-                    <span className={`text-gray-400 group-hover:text-white transition-transform ${isProfileDropdownOpen ? 'rotate-180' : ''}`}>▼</span>
+                    <svg className={`w-3 h-3 text-gray-500 group-hover:text-gray-300 transition-all duration-300 ${isProfileDropdownOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
                   </div>
                 </button>
 
-                {/* Profile Dropdown */}
                 {isProfileDropdownOpen && (
-                  <div className="absolute right-0 top-full mt-2 w-48 bg-black/95 backdrop-blur-xl rounded-xl border border-white/10 shadow-2xl py-2 z-50">
-                    <Link 
-                      to="/profile"
-                      onClick={() => setIsProfileDropdownOpen(false)}
-                      className="flex items-center space-x-3 px-4 py-3 text-gray-300 hover:text-white hover:bg-white/5 transition-all duration-300"
-                    >
-                      <span>👤</span>
-                      <span>My Profile</span>
-                    </Link>
-                    <Link 
-                      to="/profile"
-                      onClick={() => setIsProfileDropdownOpen(false)}
-                      className="flex items-center space-x-3 px-4 py-3 text-gray-300 hover:text-white hover:bg-white/5 transition-all duration-300"
-                    >
-                      <span>⚙️</span>
-                      <span>Settings</span>
-                    </Link>
-                    <div className="border-t border-white/10 my-2"></div>
-                    <div className="px-4 py-2">
-                      <UserButton 
-                        afterSignOutUrl="/"
-                        appearance={{
-                          elements: {
-                            userButtonAvatarBox: "w-6 h-6",
-                            userButtonTrigger: "w-full justify-start text-gray-300 hover:text-white text-sm"
-                          }
-                        }}
-                      />
+                  <>
+                    <div className="fixed inset-0 z-40" onClick={() => setIsProfileDropdownOpen(false)} />
+                    <div className="absolute right-0 top-full mt-2 w-52 bg-gray-900/95 backdrop-blur-xl rounded-xl border border-white/[0.06] shadow-2xl py-2 z-50 animate-fade-in">
+                      <div className="px-4 py-3 border-b border-white/[0.06] mb-1">
+                        <p className="text-white text-sm font-medium truncate">{user?.firstName} {user?.lastName}</p>
+                        <p className="text-gray-500 text-xs truncate">{user?.emailAddresses?.[0]?.emailAddress || ''}</p>
+                      </div>
+                      <Link
+                        to="/profile"
+                        onClick={() => setIsProfileDropdownOpen(false)}
+                        className="flex items-center space-x-3 px-4 py-2.5 text-gray-400 hover:text-white hover:bg-white/[0.06] transition-all duration-200 text-sm"
+                      >
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+                        <span>My Profile</span>
+                      </Link>
+                      <Link
+                        to="/dashboard"
+                        onClick={() => setIsProfileDropdownOpen(false)}
+                        className="flex items-center space-x-3 px-4 py-2.5 text-gray-400 hover:text-white hover:bg-white/[0.06] transition-all duration-200 text-sm"
+                      >
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>
+                        <span>Dashboard</span>
+                      </Link>
+                      
+                      <div className="border-t border-white/[0.06] my-1" />
+                      <div className="px-4 py-2">
+                        <UserButton
+                          afterSignOutUrl="/"
+                          appearance={{
+                            elements: {
+                              userButtonAvatarBox: "w-6 h-6",
+                              userButtonTrigger: "w-full justify-start text-gray-400 hover:text-white text-sm"
+                            }
+                          }}
+                        />
+                      </div>
                     </div>
-                  </div>
+                  </>
                 )}
               </div>
             </SignedIn>
 
             <SignedOut>
               <div className="flex items-center space-x-3">
-                <Link 
+                <Link
                   to="/login"
-                  className="text-gray-300 hover:text-white px-4 py-2 rounded-full font-medium text-sm hover:bg-white/5 transition-all duration-300"
+                  className="text-gray-400 hover:text-white px-4 py-2 rounded-full font-medium text-sm hover:bg-white/[0.06] transition-all duration-300"
                 >
                   Login
                 </Link>
-                <Link 
+                <Link
                   to="/signup"
-                  className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-5 py-2.5 rounded-full font-semibold text-sm hover:shadow-2xl hover:shadow-purple-500/30 transition-all duration-300"
+                  className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-5 py-2.5 rounded-full font-semibold text-sm transition-all duration-300 hover:shadow-xl hover:shadow-purple-500/30"
                 >
                   Sign Up
                 </Link>
@@ -151,98 +163,94 @@ const Header = () => {
             </SignedOut>
           </div>
 
-          {/* Mobile Menu Button */}
           <div className="flex items-center space-x-3 md:hidden">
-            <button 
+            <button
               onClick={() => setIsSearchOpen(!isSearchOpen)}
-              className="text-gray-300 hover:text-white transition-colors p-2 hover:bg-white/5 rounded-lg"
+              className="text-gray-400 hover:text-white transition-colors p-2 hover:bg-white/[0.06] rounded-lg"
             >
-              🔍
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
             </button>
 
-            <button 
-              className="text-white relative p-2 hover:bg-white/5 rounded-lg transition-colors"
+            <button
+              className="text-white relative p-2 hover:bg-white/[0.06] rounded-lg transition-colors"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
             >
-              <div className="w-6 h-6 flex flex-col justify-center space-y-1">
-                <span className={`block h-0.5 w-full bg-current transition-all duration-300 ${isMenuOpen ? 'rotate-45 translate-y-1.5' : ''}`}></span>
-                <span className={`block h-0.5 w-full bg-current transition-all duration-300 ${isMenuOpen ? 'opacity-0' : ''}`}></span>
-                <span className={`block h-0.5 w-full bg-current transition-all duration-300 ${isMenuOpen ? '-rotate-45 -translate-y-1.5' : ''}`}></span>
+              <div className="w-5 h-5 flex flex-col justify-center space-y-1">
+                <span className={`block h-0.5 w-full bg-current transition-all duration-300 ${isMenuOpen ? 'rotate-45 translate-y-1.5' : ''}`} />
+                <span className={`block h-0.5 w-full bg-current transition-all duration-300 ${isMenuOpen ? 'opacity-0' : ''}`} />
+                <span className={`block h-0.5 w-full bg-current transition-all duration-300 ${isMenuOpen ? '-rotate-45 -translate-y-1.5' : ''}`} />
               </div>
             </button>
           </div>
         </div>
 
-        {/* Mobile Search Bar */}
         {isSearchOpen && (
-          <div className="md:hidden mt-3">
+          <div className="md:hidden mt-3 animate-fade-in-down">
             <div className="relative">
               <input
                 type="text"
                 placeholder="Search artwork or artist..."
-                className="w-full bg-white/10 border border-white/20 rounded-full px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent pl-12"
+                className="w-full bg-white/[0.06] border border-white/[0.08] rounded-full px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500/30 focus:border-purple-500/50 pl-12 transition-all duration-300"
               />
-              <div className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400">
-                🔍
-              </div>
+              <svg className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
             </div>
           </div>
         )}
 
-        {/* Mobile Menu */}
         {isMenuOpen && (
-          <div className="md:hidden mt-4 pb-4 border-t border-white/10 pt-4">
+          <div className="md:hidden mt-4 pb-4 border-t border-white/[0.06] pt-4 animate-fade-in">
             <SignedIn>
-              <div className="grid grid-cols-2 gap-2 mb-4">
+              <div className="space-y-1 mb-4">
                 {navItems.map((item) => (
                   <Link
                     key={item.id}
                     to={item.path}
                     onClick={() => setIsMenuOpen(false)}
-                    className={`flex items-center space-x-2 p-3 rounded-xl font-medium transition-all duration-300 text-center ${
+                    className={`flex items-center space-x-3 px-4 py-3 rounded-xl font-medium transition-all duration-200 ${
                       isActive(item.path)
-                        ? `text-white bg-gradient-to-r ${item.color} shadow-lg`
-                        : 'text-gray-300 bg-white/5 hover:bg-white/10'
+                        ? 'text-white bg-gradient-to-r from-purple-600/50 to-pink-600/50'
+                        : 'text-gray-400 hover:text-white hover:bg-white/[0.06]'
                     }`}
                   >
-                    <span className="text-sm">{item.icon}</span>
                     <span className="text-sm">{item.label}</span>
                   </Link>
                 ))}
               </div>
-              
-              <div className="space-y-2 border-t border-white/10 pt-4">
-                <Link 
+
+              <div className="space-y-2 border-t border-white/[0.06] pt-4">
+                <Link
                   to="/upload"
                   onClick={() => setIsMenuOpen(false)}
-                  className="w-full flex items-center space-x-3 p-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl font-semibold justify-center"
+                  className="w-full flex items-center justify-center space-x-2 p-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl font-semibold"
                 >
-                  <span>+</span>
+                  <span className="text-lg">+</span>
                   <span>Upload Artwork</span>
                 </Link>
-                <Link 
+                <Link
                   to="/profile"
                   onClick={() => setIsMenuOpen(false)}
-                  className="flex items-center space-x-3 p-3 text-gray-300 hover:text-white hover:bg-white/5 rounded-lg w-full"
+                  className="flex items-center space-x-3 px-4 py-3 text-gray-400 hover:text-white hover:bg-white/[0.06] rounded-lg"
                 >
-                  <span>👤</span>
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
                   <span>My Profile</span>
                 </Link>
-                <Link 
-                  to="/profile"
+                <Link
+                  to="/dashboard"
                   onClick={() => setIsMenuOpen(false)}
-                  className="flex items-center space-x-3 p-3 text-gray-300 hover:text-white hover:bg-white/5 rounded-lg w-full"
+                  className="flex items-center space-x-3 px-4 py-3 text-gray-400 hover:text-white hover:bg-white/[0.06] rounded-lg"
                 >
-                  <span>⚙️</span>
-                  <span>Settings</span>
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>
+                  <span>Dashboard</span>
                 </Link>
-                <div className="pt-2 border-t border-white/10">
-                  <div className="p-3 text-gray-300">
-                    <UserButton 
+                <div className="pt-2 border-t border-white/[0.06]">
+                  <div className="px-4 py-2">
+                    <UserButton
                       afterSignOutUrl="/"
                       appearance={{
                         elements: {
-                          userButtonTrigger: "w-full justify-start"
+                          userButtonTrigger: "w-full justify-start text-gray-400 hover:text-white"
                         }
                       }}
                     />
@@ -253,14 +261,14 @@ const Header = () => {
 
             <SignedOut>
               <div className="space-y-2">
-                <Link 
+                <Link
                   to="/login"
                   onClick={() => setIsMenuOpen(false)}
-                  className="w-full flex items-center justify-center p-3 text-gray-300 hover:text-white hover:bg-white/5 rounded-lg"
+                  className="w-full flex items-center justify-center p-3 text-gray-400 hover:text-white hover:bg-white/[0.06] rounded-lg"
                 >
                   Login
                 </Link>
-                <Link 
+                <Link
                   to="/signup"
                   onClick={() => setIsMenuOpen(false)}
                   className="w-full flex items-center justify-center p-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl font-semibold"
@@ -272,14 +280,6 @@ const Header = () => {
           </div>
         )}
       </div>
-
-      {/* Close dropdown when clicking outside */}
-      {isProfileDropdownOpen && (
-        <div 
-          className="fixed inset-0 z-40" 
-          onClick={() => setIsProfileDropdownOpen(false)}
-        ></div>
-      )}
     </header>
   );
 };

@@ -1,5 +1,6 @@
 
 import express from 'express';
+import mongoose from 'mongoose';
 import Follow from '../models/Follow.js';
 import User from '../models/User.js';
 
@@ -103,16 +104,28 @@ router.get('/following/:userId', async (req, res) => {
     const follows = await Follow.find({ followerId: userId }).populate('followingUser');
     
     const following = follows.map(f => f.followingUser).filter(Boolean);
-    
-    res.json({
-      success: true,
-      following: following.map(user => ({
-        clerkUserId: user.clerkUserId, 
+
+    const Artwork = mongoose.model('Artwork');
+    const FollowModel = mongoose.model('Follow');
+
+    const followingData = await Promise.all(following.map(async (user) => {
+      const [artworksCount, followersCount] = await Promise.all([
+        Artwork.countDocuments({ clerkUserId: user.clerkUserId, isDeleted: { $ne: true }, status: 'published' }),
+        FollowModel.countDocuments({ followingUser: user._id })
+      ]);
+
+      return {
+        clerkUserId: user.clerkUserId,
         name: user.fullName || user.username || '',
-        username: user.username
-        
-      }))
-    });
+        username: user.username,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        profileImage: user.profileImage,
+        stats: { artworksCount, followersCount, followingCount: 0 }
+      };
+    }));
+
+    res.json({ success: true, following: followingData });
   } catch (error) {
     res.status(500).json({ success: false, error: 'Failed to fetch following list' });
   }
@@ -121,17 +134,23 @@ router.get('/following/:userId', async (req, res) => {
 router.get('/followers/:userId', async (req, res) => {
   try {
     const { userId } = req.params;
-    const follows = await Follow.find({ followingId: userId }).populate('followerUser');
-    const followers = follows.map(f => f.followerUser).filter(Boolean); // Filter out null/deleted users
+    const follows = await Follow.find({ followingId: userId }).populate('followerUser').sort({ createdAt: -1 });
+    const followers = follows
+      .map(f => {
+        if (!f.followerUser) return null;
+        return {
+          clerkUserId: f.followerUser.clerkUserId,
+          name: f.followerUser.fullName || f.followerUser.username || '',
+          username: f.followerUser.username,
+          profileImage: f.followerUser.profileImage,
+          bio: f.followerUser.bio,
+          followedAt: f.createdAt
+        };
+      })
+      .filter(Boolean);
     res.json({ 
       success: true, 
-      followers: followers.map(user => ({
-        clerkUserId: user.clerkUserId,
-        name: user.fullName || user.username || '',
-        username: user.username,
-        profileImage: user.profileImage,
-        bio: user.bio
-      }))
+      followers
     });
   } catch (error) {
     res.status(500).json({ success: false, error: 'Failed to fetch followers list' });

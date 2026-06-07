@@ -466,7 +466,7 @@ router.get('/user/:clerkUserId', async (req, res) => {
     const { clerkUserId } = req.params;
     
     const artworks = await Artwork.find({ clerkUserId })
-      .select('title imageUrl artistName tags createdAt likes') 
+      .select('title imageUrl artistName tags createdAt likes viewedBy')
       .sort({ createdAt: -1 });
 
     res.json({

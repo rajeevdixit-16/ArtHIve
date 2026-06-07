@@ -17,6 +17,7 @@ import CreateCollection from './pages/CreateCollection/CreateCollection'
 import EditCollection from './pages/EditCollection/EditCollection'
 import EditProfile from './pages/EditProfile/EditProfile'
 import Saved from './pages/Saved/Saved'
+import ArtistDetail from './pages/ArtistDetail/ArtistDetail'
 // Components
 import Header from './components/Header/Header'
 import Footer from './components/Footer/Footer'
@@ -57,6 +58,7 @@ function AppRoutes() {
             <Route path="/collections/:id/edit" element={<EditCollection />} />
             <Route path="/edit-profile" element={<EditProfile />} />
             <Route path="/saved" element={<Saved />} />
+            <Route path="/artist/:clerkUserId" element={<ArtistDetail />} />
             {/* Fallback route for signed-in users */}
             <Route path="*" element={<Profile />} />
           </Routes>
@@ -76,6 +78,7 @@ function AppRoutes() {
             <Route path="/collections/create" element={<CreateCollection />} />
             <Route path="/collections/:id" element={<CollectionDetail />} />
             <Route path="/collections/:id/edit" element={<EditCollection />} />
+            <Route path="/artist/:clerkUserId" element={<ArtistDetail />} />
             {/* Redirect all other routes to login for signed-out users */}
             <Route path="*" element={<Login />} />
           </Routes>
