@@ -6,6 +6,7 @@ import { clerkClient } from '@clerk/clerk-sdk-node';
 import mongoose from 'mongoose';
 import User from '../models/User.js';
 import { analyzeTagsForContent, validateUpload, sanitizeDescription } from '../ai_services/moderation_service.js';
+import { generateArtDescription } from '../ai_services/description_service.js';
 
 const router = express.Router();
 
@@ -22,6 +23,48 @@ const upload = multer({
     } else {
       cb(new Error('Only image files are allowed!'), false);
     }
+  }
+});
+
+// Preview — upload image + generate AI description (does NOT save to DB)
+router.post('/preview', upload.single('image'), async (req, res) => {
+  try {
+    const { title, description, category, customTags } = req.body;
+
+    if (!req.file) {
+      return res.status(400).json({ success: false, error: 'No image file provided' });
+    }
+
+    const result = await new Promise((resolve, reject) => {
+      const stream = cloudinary.uploader.upload_stream(
+        { folder: 'grand-gallery', transformation: [{ width: 1200, height: 800, crop: 'limit' }, { quality: 'auto' }, { format: 'webp' }] },
+        (error, result) => {
+          if (error) reject(error);
+          else resolve(result);
+        }
+      );
+      stream.end(req.file.buffer);
+    });
+
+    const tags = customTags ? customTags.split(',').map(t => t.trim()).filter(Boolean) : [];
+
+    const generatedDescription = await generateArtDescription({
+      imageUrl: result.secure_url,
+      title: title || 'Untitled',
+      category: category || 'digital',
+      tags,
+      userDescription: description
+    });
+
+    res.json({
+      success: true,
+      cloudinaryUrl: result.secure_url,
+      cloudinaryId: result.public_id,
+      generatedDescription
+    });
+  } catch (error) {
+    console.error('❌ Preview error:', error);
+    res.status(500).json({ success: false, error: 'Failed to process image preview' });
   }
 });
 
@@ -102,14 +145,26 @@ router.post('/', upload.single('image'), async (req, res) => {
       stream.end(req.file.buffer);
     });
 
+    // Generate AI description (fallback if user didn't provide one)
+    let generatedDescription = null;
+    if (!description || !description.trim()) {
+      generatedDescription = await generateArtDescription({
+        imageUrl: result.secure_url,
+        title: title.trim(),
+        category: category || 'digital',
+        tags,
+        userDescription: description
+      });
+    }
+
+    const finalDescription = sanitizeDescription(generatedDescription || description || '');
+
     // Create artwork in database
     console.log('🎨 Preparing artwork data...');
-    console.log('User:', user);
-    console.log('File mimetype:', req.file?.mimetype);
 
     const artworkData = {
       title: title.trim(),
-      description: sanitizeDescription(description) || '',
+      description: finalDescription,
       imageUrl: result.secure_url,
       cloudinaryId: result.public_id,
       userId: user._id,
@@ -124,7 +179,6 @@ router.post('/', upload.single('image'), async (req, res) => {
       status: moderationResult.isFlagged ? 'flagged' : 'published'
     };
 
-    console.log('💾 Artwork data:', artworkData);
     const artwork = new Artwork(artworkData);
     await artwork.save();
 
@@ -135,6 +189,7 @@ router.post('/', upload.single('image'), async (req, res) => {
       success: true,
       message: 'Artwork uploaded successfully',
       artwork,
+      generatedDescription,
       moderationStatus: moderationResult.isFlagged ? 'flagged_for_review' : 'approved'
     });
   } catch (error) {
