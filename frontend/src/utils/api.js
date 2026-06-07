@@ -5,34 +5,20 @@ const API = axios.create({
   timeout: 10000,
 });
 
-// Request interceptor to add auth token
+// Request and response interceptors
 API.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
-  }
+  (config) => config,
+  (error) => Promise.reject(error)
 );
 
 API.interceptors.response.use(
   (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      localStorage.removeItem('token');
-      window.location.href = '/login';
-    }
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error)
 );
 
 // Artwork API functions
 export const artworkAPI = {
-  getAll: () => API.get('/artworks'),
+  getAll: (params = {}) => API.get('/artworks', { params }),
   create: (artwork) => API.post('/artworks', artwork),
   getById: (id) => API.get(`/artworks/${id}`),
   update: (id, artwork) => API.put(`/artworks/${id}`, artwork),

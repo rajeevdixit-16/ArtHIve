@@ -40,8 +40,7 @@ const AddArtworksModal = ({ collectionId, onClose, onArtworksAdded }) => {
   } catch (error) {
     console.error('❌ Fetch error:', error);
     console.error('❌ Error details:', error.response?.data || error.message);
-    
-    await fetchUserArtworksFallback();
+    setUserArtworks([]);
   } finally {
     setLoading(false);
   }

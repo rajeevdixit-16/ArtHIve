@@ -108,7 +108,7 @@ router.get('/following/:userId', async (req, res) => {
       success: true,
       following: following.map(user => ({
         clerkUserId: user.clerkUserId, 
-        name: user.name,
+        name: user.fullName || user.username || '',
         username: user.username
         
       }))
@@ -123,7 +123,16 @@ router.get('/followers/:userId', async (req, res) => {
     const { userId } = req.params;
     const follows = await Follow.find({ followingId: userId }).populate('followerUser');
     const followers = follows.map(f => f.followerUser).filter(Boolean); // Filter out null/deleted users
-    res.json({ success: true, followers });
+    res.json({ 
+      success: true, 
+      followers: followers.map(user => ({
+        clerkUserId: user.clerkUserId,
+        name: user.fullName || user.username || '',
+        username: user.username,
+        profileImage: user.profileImage,
+        bio: user.bio
+      }))
+    });
   } catch (error) {
     res.status(500).json({ success: false, error: 'Failed to fetch followers list' });
   }

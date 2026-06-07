@@ -109,7 +109,7 @@ const Header = () => {
                       <span>My Profile</span>
                     </Link>
                     <Link 
-                      to="/settings"
+                      to="/profile"
                       onClick={() => setIsProfileDropdownOpen(false)}
                       className="flex items-center space-x-3 px-4 py-3 text-gray-300 hover:text-white hover:bg-white/5 transition-all duration-300"
                     >
@@ -229,7 +229,7 @@ const Header = () => {
                   <span>My Profile</span>
                 </Link>
                 <Link 
-                  to="/settings"
+                  to="/profile"
                   onClick={() => setIsMenuOpen(false)}
                   className="flex items-center space-x-3 p-3 text-gray-300 hover:text-white hover:bg-white/5 rounded-lg w-full"
                 >

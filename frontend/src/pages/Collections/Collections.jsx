@@ -233,19 +233,10 @@ const Collections = () => {
               <Link to={`/collections/${collection._id}`} className="block">
                 {/* Cover Image */}
                 <div className="relative h-48 overflow-hidden">
-                  {getCoverImage(collection) ? (
-                    <img
-                      src={getCoverImage(collection)}
-                      alt={collection.name}
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                    />
-                  ) : (
-                    <div className={`w-full h-full ${getGradientClass(index)} flex items-center justify-center`}>
-                      <span className="text-4xl text-white/60 font-bold">
-                        {collection.name?.charAt(0) || 'C'}
-                      </span>
-                    </div>
-                  )}
+                  <div
+                    className="w-full h-full bg-cover bg-center group-hover:scale-110 transition-transform duration-500"
+                    style={{ backgroundImage: `url(${getCoverImage(collection)})` }}
+                  />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-all duration-500"></div>
 
                   {/* Overlay Info */}

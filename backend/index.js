@@ -2,17 +2,11 @@ import express from 'express';
 import mongoose from 'mongoose';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import multer from 'multer';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { ClerkExpressRequireAuth } from '@clerk/clerk-sdk-node';
 import { Webhook } from 'svix';
 import { clerkClient } from '@clerk/clerk-sdk-node';
 
-import fs from 'fs';
-
-// AI Services
-// import { analyzeImage } from './ai_services/vision_api_services/auto_tagger.js';
 import recommendationRoutes from './routes/recommendations.js';
 
 // Models
@@ -45,7 +39,6 @@ app.use(cors({
 }));
 app.use(express.json());
 app.use(express.static('public'));
-app.use('/api/webhooks/clerk', express.raw({ type: 'application/json' }));
 
 console.log('🔧 Mounting API routes...');
 
@@ -109,7 +102,7 @@ app.post('/api/clerk/webhook', express.raw({ type: 'application/json' }), async 
   // Get the secret from your environment variables
   const WEBHOOK_SECRET = process.env.CLERK_WEBHOOK_SECRET;
   if (!WEBHOOK_SECRET) {
-    throw new Error('You need a CLERK_WEBHOOK_SECRET in your .env');
+    return res.status(500).json({ success: false, message: 'Missing CLERK_WEBHOOK_SECRET' });
   }
 
   const wh = new Webhook(WEBHOOK_SECRET);

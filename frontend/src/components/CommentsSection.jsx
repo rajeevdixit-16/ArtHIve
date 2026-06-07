@@ -141,6 +141,8 @@ const CommentsSection = ({ artworkId, initialComments = [] }) => {
     }
   };
 
+  const [likingComments, setLikingComments] = useState(new Set());
+
   // Like comment
   const handleLikeComment = async (commentId) => {
     if (!user) {
@@ -148,24 +150,44 @@ const CommentsSection = ({ artworkId, initialComments = [] }) => {
       return;
     }
 
+    setLikingComments(prev => new Set(prev).add(commentId));
+    setError('');
+
+    // Toggle locally using the likes array (always available from API)
+    setComments(prev => prev.map(c =>
+      c._id === commentId
+        ? {
+            ...c,
+            likes: c.likes?.includes(user.id)
+              ? c.likes.filter(id => id !== user.id)
+              : [...(c.likes || []), user.id]
+          }
+        : c
+    ));
+
     try {
       const response = await fetch(`/api/comments/${commentId}/like`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          clerkUserId: user.id
-        })
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ clerkUserId: user.id })
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to like comment');
-      }
-
-      fetchComments();
+      if (!response.ok) throw new Error('Failed to like comment');
     } catch (err) {
-      console.error('Failed to like comment:', err);
+      // Rollback
+      setComments(prev => prev.map(c =>
+        c._id === commentId
+          ? {
+              ...c,
+              likes: c.likes?.includes(user.id)
+                ? c.likes.filter(id => id !== user.id)
+                : [...(c.likes || []), user.id]
+            }
+          : c
+      ));
+      setError('Failed to like comment. Please try again.');
+    } finally {
+      setLikingComments(prev => { const next = new Set(prev); next.delete(commentId); return next; });
     }
   };
 
@@ -349,9 +371,21 @@ const CommentsSection = ({ artworkId, initialComments = [] }) => {
               <div className="flex items-center gap-4 text-xs">
                 <button
                   onClick={() => handleLikeComment(comment._id)}
-                  className="text-gray-400 hover:text-red-400 transition-colors flex items-center gap-1"
+                  disabled={likingComments.has(comment._id)}
+                  className={`transition-colors flex items-center gap-1 disabled:opacity-50 ${
+                    comment.likes?.includes(user?.id)
+                      ? 'text-red-400 hover:text-red-300'
+                      : 'text-gray-400 hover:text-red-400'
+                  }`}
                 >
-                  ❤️ {comment.likesCount || 0}
+                  {likingComments.has(comment._id) ? (
+                    <span className="inline-block w-3.5 h-3.5 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                  ) : comment.likes?.includes(user?.id) ? (
+                    '❤️'
+                  ) : (
+                    '🤍'
+                  )}
+                  <span>{comment.likes?.length || 0}</span>
                 </button>
                 {user?.id !== comment.clerkUserId && (
                   <button

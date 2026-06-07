@@ -10,7 +10,7 @@ const Signup = () => {
         <div className="text-center mb-6">
           <div className="flex items-center justify-center space-x-2 mb-4">
             <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-sm">GG</span>
+              <span className="text-white font-bold text-sm">AH</span>
             </div>
             <span className="text-white text-xl font-bold">Grand Gallery</span>
           </div>

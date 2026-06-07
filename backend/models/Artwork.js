@@ -280,7 +280,7 @@ artworkSchema.statics.getUserArtworkCount = async function(userId) {
 
 // Middleware to update user stats when artwork is saved
 artworkSchema.post('save', async function() {
-  if (this.status === 'published') {
+  if (this.isNew && this.status === 'published') {
     const User = mongoose.model('User');
     await User.findByIdAndUpdate(this.userId, {
       $inc: { 'stats.artworksCount': 1 }
@@ -292,9 +292,15 @@ artworkSchema.post('save', async function() {
 artworkSchema.post('findOneAndDelete', async function(doc) {
   if (doc && doc.status === 'published') {
     const User = mongoose.model('User');
-    await User.findByIdAndUpdate(doc.userId, {
-      $inc: { 'stats.artworksCount': -1 }
-    });
+    const user = await User.findById(doc.userId);
+    if (user) {
+      const Artwork = mongoose.model('Artwork');
+      const remainingArtworks = await Artwork.find({ userId: doc.userId, status: 'published' });
+      const totalLikes = remainingArtworks.reduce((sum, a) => sum + a.likes.length, 0);
+      user.stats.artworksCount = remainingArtworks.length;
+      user.stats.totalLikes = totalLikes;
+      await user.save();
+    }
   }
 });
 

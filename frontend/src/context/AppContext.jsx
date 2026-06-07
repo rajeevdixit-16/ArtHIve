@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useUser } from '@clerk/clerk-react';
+import API from '../utils/api';
 
 const AppContext = createContext();
 
@@ -96,30 +97,16 @@ export const AppProvider = ({ children }) => {
   const createArtwork = async (artworkData) => {
     try {
       setError(null);
-      const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001';
-      
-      const response = await fetch(`${backendUrl}/api/artworks`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          ...artworkData,
-          clerkUserId: user.id,
-        }),
+      const response = await API.post('/artworks', {
+        ...artworkData,
+        clerkUserId: user.id,
       });
-
-      if (response.ok) {
-        const newArtwork = await response.json();
-        setArtworks(prev => [newArtwork.artwork, ...prev]);
-        return newArtwork;
-      } else {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to create artwork');
-      }
+      const newArtwork = response.data;
+      setArtworks(prev => [newArtwork.artwork, ...prev]);
+      return newArtwork;
     } catch (error) {
       console.error('❌ Failed to create artwork:', error);
-      setError(error.message);
+      setError(error.response?.data?.error || error.message);
       throw error;
     }
   };
@@ -128,34 +115,20 @@ export const AppProvider = ({ children }) => {
   const updateArtwork = async (artworkId, updates) => {
     try {
       setError(null);
-      const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001';
-      
-      const response = await fetch(`${backendUrl}/api/artworks/${artworkId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          ...updates,
-          clerkUserId: user.id,
-        }),
+      const response = await API.put(`/artworks/${artworkId}`, {
+        ...updates,
+        clerkUserId: user.id,
       });
-
-      if (response.ok) {
-        const updatedArtwork = await response.json();
-        setArtworks(prev => 
-          prev.map(artwork => 
-            artwork._id === artworkId ? updatedArtwork.artwork : artwork
-          )
-        );
-        return updatedArtwork;
-      } else {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to update artwork');
-      }
+      const updatedArtwork = response.data;
+      setArtworks(prev =>
+        prev.map(artwork =>
+          artwork._id === artworkId ? updatedArtwork.artwork : artwork
+        )
+      );
+      return updatedArtwork;
     } catch (error) {
       console.error('❌ Failed to update artwork:', error);
-      setError(error.message);
+      setError(error.response?.data?.error || error.message);
       throw error;
     }
   };
@@ -164,28 +137,14 @@ export const AppProvider = ({ children }) => {
   const deleteArtwork = async (artworkId) => {
     try {
       setError(null);
-      const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001';
-      
-      const response = await fetch(`${backendUrl}/api/artworks/${artworkId}`, {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          clerkUserId: user.id,
-        }),
+      const response = await API.delete(`/artworks/${artworkId}`, {
+        data: { clerkUserId: user.id },
       });
-
-      if (response.ok) {
-        setArtworks(prev => prev.filter(artwork => artwork._id !== artworkId));
-        return { success: true };
-      } else {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to delete artwork');
-      }
+      setArtworks(prev => prev.filter(artwork => artwork._id !== artworkId));
+      return { success: true };
     } catch (error) {
       console.error('❌ Failed to delete artwork:', error);
-      setError(error.message);
+      setError(error.response?.data?.error || error.message);
       throw error;
     }
   };
@@ -193,28 +152,13 @@ export const AppProvider = ({ children }) => {
   // Like artwork
   const likeArtwork = async (artworkId) => {
     try {
-      const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001';
-      
-      const response = await fetch(`${backendUrl}/api/artworks/${artworkId}/like`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          clerkUserId: user.id,
-        }),
+      const response = await API.post(`/artworks/${artworkId}/like`, {
+        clerkUserId: user.id,
       });
-
-      if (response.ok) {
-        const result = await response.json();
-        return result;
-      } else {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to like artwork');
-      }
+      return response.data;
     } catch (error) {
       console.error('❌ Failed to like artwork:', error);
-      setError(error.message);
+      setError(error.response?.data?.error || error.message);
       throw error;
     }
   };

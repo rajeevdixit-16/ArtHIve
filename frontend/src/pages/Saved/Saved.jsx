@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useUser } from '@clerk/clerk-react';
 import { Link } from 'react-router-dom';
 
+const BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001';
+
 const Saved = () => {
   const { user } = useUser();
   const [activeTab, setActiveTab] = useState('artworks');
@@ -29,8 +31,8 @@ const fetchSavedItems = async () => {
     // Fetch saved items (artworks/collections) and followed artists
     const [savedRes, artistsRes] = await Promise.all([
       // ✅ CORRECT: Use the single endpoint for saved items
-      fetch(`${import.meta.env.VITE_BACKEND_URL}/api/saved/${user.id}`),
-      fetch(`${import.meta.env.VITE_BACKEND_URL}/api/follow/following/${user.id}`)
+      fetch(`${BASE_URL}/api/saved/${user.id}`),
+      fetch(`${BASE_URL}/api/follow/following/${user.id}`)
     ]);
 
     // Handle the response for saved items
@@ -73,7 +75,7 @@ const removeFromSaved = async (itemId, type) => {
 
     const endpoint = type === 'artworks' ? 'artworks' : 'collections';
     const response = await fetch(
-      `${import.meta.env.VITE_BACKEND_URL}/api/saved/${endpoint}/${itemId}`,
+      `${BASE_URL}/api/saved/${endpoint}/${itemId}`,
       {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
@@ -101,7 +103,7 @@ const removeFromSaved = async (itemId, type) => {
   const unfollowArtist = async (artistId) => {
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}/api/follow/${artistId}`,
+        `${BASE_URL}/api/follow/${artistId}`,
         {
           method: 'DELETE',
           headers: { 'Content-Type': 'application/json' },
@@ -141,7 +143,7 @@ const removeFromSaved = async (itemId, type) => {
         {type === 'artists' && "Follow artists to see their latest work here"}
       </p>
       <Link 
-        to={type === 'artists' ? '/discover' : '/gallery'} 
+        to={type === 'artists' ? '/discover' : '/discover'} 
         className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg hover:shadow-purple-500/30 transition-all duration-300"
       >
         Discover {type === 'artists' ? 'Artists' : 'Artworks'}
@@ -260,6 +262,7 @@ const removeFromSaved = async (itemId, type) => {
                             src={artist.profileImage}
                             alt={artist.username}
                             className="w-20 h-20 rounded-full mx-auto mb-4 border-2 border-white/20 group-hover:border-purple-500 transition-colors"
+                            onError={(e) => { e.target.src = 'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect fill=%22%236b21a8%22 width=%22100%22 height=%22100%22/><text fill=%22white%22 font-size=%2250%22 x=%2250%22 y=%2265%22 text-anchor=%22middle%22>U</text></svg>'; }}
                           />
                           <h3 className="text-white font-semibold text-lg mb-1">
                             {artist.firstName} {artist.lastName}

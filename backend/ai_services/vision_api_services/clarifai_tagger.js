@@ -11,12 +11,14 @@ async function analyzeImageWithClarifai(imagePath) {
         const startTime = Date.now();
 
         // Check if file exists
-        if (!fs.existsSync(imagePath)) {
+        try {
+            await fs.promises.access(imagePath);
+        } catch {
             throw new Error(`Image file not found at path: ${imagePath}`);
         }
 
         // Read image file and convert to base64
-        const imageData = fs.readFileSync(imagePath);
+        const imageData = await fs.promises.readFile(imagePath);
         const base64Image = imageData.toString('base64');
 
         console.log('🔄 Analyzing image:', imagePath);

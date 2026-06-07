@@ -35,5 +35,18 @@ export const likeService = {
       console.error('Error response:', error.response?.data);
       throw new Error(error.response?.data?.error || 'Failed to check like status');
     }
+  },
+
+  getBatchLikeStatus: async (artworkIds, clerkUserId) => {
+    try {
+      const response = await API.post('/artworks/like-status/batch', {
+        artworkIds,
+        clerkUserId
+      });
+      return response.data;
+    } catch (error) {
+      console.error('❌ Batch like status error:', error);
+      throw new Error(error.response?.data?.error || 'Failed to check like statuses');
+    }
   }
 };

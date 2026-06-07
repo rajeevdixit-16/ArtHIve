@@ -115,8 +115,14 @@ commentSchema.statics.getCommentsForArtwork = async function(artworkId, page = 1
     status: { $ne: 'flagged' }
   });
 
+  const enriched = comments.map(c => ({
+    ...c,
+    likesCount: c.likes?.length || 0,
+    repliesCount: c.replies?.length || 0
+  }));
+
   return {
-    comments,
+    comments: enriched,
     pagination: {
       total,
       page,

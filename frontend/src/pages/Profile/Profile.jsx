@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom';
 const Profile = () => {
   const { user, isLoaded } = useUser();
   const [loading, setLoading] = useState(true);
+  const [imgError, setImgError] = useState(false);
 
   useEffect(() => {
     if (isLoaded) {
@@ -65,20 +66,20 @@ const Profile = () => {
               <div className="relative group">
                 <div className="absolute -inset-4 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full opacity-0 group-hover:opacity-20 blur-xl transition-all duration-500"></div>
                 <div className="relative">
-                  <img 
-                    src={user.imageUrl} 
-                    alt="Profile" 
-                    className="w-40 h-40 rounded-full border-4 border-white/20 shadow-2xl object-cover transform group-hover:scale-105 transition-transform duration-300"
-                    onError={(e) => {
-                      e.target.style.display = 'none';
-                      e.target.nextSibling.style.display = 'flex';
-                    }}
-                  />
-                  <div 
-                    className="w-40 h-40 rounded-full border-4 border-white/20 shadow-2xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white text-5xl font-bold hidden transform group-hover:scale-105 transition-transform duration-300"
-                  >
-                    {getUserInitial()}
-                  </div>
+                  {!imgError ? (
+                    <img 
+                      src={user.imageUrl} 
+                      alt="Profile" 
+                      className="w-40 h-40 rounded-full border-4 border-white/20 shadow-2xl object-cover transform group-hover:scale-105 transition-transform duration-300"
+                      onError={() => setImgError(true)}
+                    />
+                  ) : (
+                    <div 
+                      className="w-40 h-40 rounded-full border-4 border-white/20 shadow-2xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white text-5xl font-bold transform group-hover:scale-105 transition-transform duration-300"
+                    >
+                      {getUserInitial()}
+                    </div>
+                  )}
                   <div className="absolute -bottom-3 -right-3 w-12 h-12 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full border-4 border-gray-900 flex items-center justify-center shadow-lg">
                     <span className="text-white text-sm font-bold">✓</span>
                   </div>

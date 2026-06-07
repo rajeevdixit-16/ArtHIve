@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useUser } from "@clerk/clerk-react";
 import { artworkAPI } from "../../utils/api";
 import { likeService } from "../../services/likeService";
@@ -15,6 +15,7 @@ const Discover = () => {
   const navigate = useNavigate();
   const { user } = useUser();
   const [artworks, setArtworks] = useState([]);
+  const [allArtworks, setAllArtworks] = useState([]);
   const [recommendedArtworks, setRecommendedArtworks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [recommendationsLoading, setRecommendationsLoading] = useState(false);
@@ -26,10 +27,13 @@ const Discover = () => {
 
   const [activeTab, setActiveTab] = useState('all');
   
-  // Pagination state
+  // Pagination state per tab
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [itemsPerPage] = useState(12);
+  const itemsPerPage = 12;
+  const followingRef = useRef(new Set());
+  const savedRef = useRef(new Set());
+  const initialLoadDone = useRef(false);
 
   // Modal state
   const [selectedArtwork, setSelectedArtwork] = useState(null);
@@ -49,123 +53,131 @@ const Discover = () => {
   const [savedArtworks, setSavedArtworks] = useState(new Set());
 
 
-  const fetchData = useCallback(async () => {
+  const fetchMetadata = useCallback(async () => {
+    if (!user?.id) return;
     try {
-      setLoading(true);
-      setError("");
-      let initialFollowingSet = new Set();
-      let initialSavedSet = new Set();
+      const [followingResponse, savedResponse] = await Promise.allSettled([
+        followService.getFollowing(user.id),
+        savedService.getSavedItems(user.id)
+      ]);
 
-      // list of artists the user follows
+      if (followingResponse.status === 'fulfilled' && followingResponse.value.data.success) {
+        const set = new Set(followingResponse.value.data.following?.map(artist => artist.clerkUserId) || []);
+        followingRef.current = set;
+        setFollowingArtists(set);
+      }
+
+      if (savedResponse.status === 'fulfilled' && savedResponse.value.data.success) {
+        const set = new Set(savedResponse.value.data.artworks?.map(art => art._id) || []);
+        savedRef.current = set;
+        setSavedArtworks(set);
+      }
+    } catch (error) {
+      console.warn('⚠️ Error in user data fetch:', error);
+    }
+  }, [user]);
+
+  // Fetch full artwork list (for 'following' tab) and recommendations
+  const fetchFullArtworks = useCallback(async () => {
+    try {
+      const response = await artworkAPI.getAll({ limit: 200 });
+      const data = response.data?.artworks || [];
+
+      const processed = data.map(artwork => {
+        const isFollowing = followingRef.current.has(artwork.clerkUserId);
+        const isSaved = savedRef.current.has(artwork._id);
+        const hasLiked = artwork.likes?.includes(user?.id) || false;
+        const likesCount = artwork.likes?.length || 0;
+
+        return { 
+          ...artwork, 
+          isFollowing, 
+          hasLiked, 
+          likesCount,  
+          views: artwork.views ?? artwork.viewedBy?.length ?? 0, 
+          isSaved 
+        };
+      });
+
+      setAllArtworks(processed);
 
       if (user?.id) {
-        try {
-          // Fetch following artists and saved items in parallel
-
-          const [followingResponse, savedResponse] = await Promise.allSettled([
-            followService.getFollowing(user.id),
-            savedService.getSavedItems(user.id)
-          ]);
-
-          // Handle following response
-          if (followingResponse.status === 'fulfilled' && followingResponse.value.data.success) {
-            initialFollowingSet = new Set(followingResponse.value.data.following?.map(artist => artist.clerkUserId) || []);
-            setFollowingArtists(initialFollowingSet);
-          } else {
-            console.warn('⚠️ Could not fetch following data');
-          }
-
-          // Handle saved response
-          if (savedResponse.status === 'fulfilled' && savedResponse.value.data.success) {  
-            const savedArtworkIds = savedResponse.value.data.artworks?.map(art => art._id) || [];
-            initialSavedSet = new Set(savedArtworkIds);
-            setSavedArtworks(initialSavedSet);
-          } else {
-            console.warn('⚠️ Could not fetch saved items - route might not exist yet');
-          }
-        } catch (error) {
-          console.warn('⚠️ Error in user data fetch:', error);
-          
+        const recResponse = await recommendationService.getRecommendations(user.id);
+        if (recResponse.data?.success) {
+          const recommendations = recResponse.data.recommendations || [];
+          const processedRecs = recommendations.map(rec => {
+            const existing = processed.find(art => art._id === rec._id);
+            if (existing) return existing;
+            return { 
+              ...rec, 
+              isFollowing: followingRef.current.has(rec.clerkUserId), 
+              hasLiked: rec.likes?.includes(user.id) || false, 
+              likesCount: rec.likes?.length || 0, 
+              isSaved: savedRef.current.has(rec._id) 
+            };
+          });
+          setRecommendedArtworks(processedRecs);
         }
       }
-
-      //  Fetch all artworks
-      const artworkResponse = await artworkAPI.getAll();
-      const artworksData = artworkResponse.data?.artworks || artworkResponse.data?.data || artworkResponse.data || [];
-
-      // Process artworks with the follow status
-      const artworksWithStatus = await Promise.all(
-        artworksData.map(async (artwork) => {
-          const isFollowing = initialFollowingSet.has(artwork.clerkUserId);
-          const isSaved = initialSavedSet.has(artwork._id);
-          let hasLiked = false;
-          let likesCount = artwork.likes?.length || 0;
-          
-          if (user?.id) {
-            try {
-              const likeStatusResponse = await likeService.getLikeStatus(artwork._id, user.id);
-              hasLiked = likeStatusResponse.hasLiked;
-              likesCount = likeStatusResponse.likesCount;
-            } catch (e) {
-              console.warn(`Could not fetch like status for ${artwork._id}`);
-            }
-          }
-
-          return { 
-            ...artwork, 
-            isFollowing, 
-            hasLiked, 
-            likesCount,  
-            views: artwork.views ?? artwork.viewedBy?.length ?? 0, 
-            isSaved 
-          };
-        })
-      );
-
-      setArtworks(artworksWithStatus);
-
-      // Fetch recommendations if the user is logged in
-      if (user?.id) {
-        await fetchRecommendations(initialFollowingSet, initialSavedSet, artworksWithStatus);
-      }
-
     } catch (err) {
-      console.error("❌ Error fetching data:", err);
+      console.error("❌ Error fetching full list:", err);
+    }
+  }, [user]);
+
+  // Fetch a single page for the 'all' tab (server-side pagination)
+  const fetchAllPage = useCallback(async (page) => {
+    try {
+      setLoading(true);
+      const response = await artworkAPI.getAll({ page, limit: itemsPerPage });
+      const data = response.data;
+      const artworksData = data.artworks || [];
+
+      const processed = artworksData.map(artwork => {
+        const isFollowing = followingRef.current.has(artwork.clerkUserId);
+        const isSaved = savedRef.current.has(artwork._id);
+        const hasLiked = artwork.likes?.includes(user?.id) || false;
+        const likesCount = artwork.likes?.length || 0;
+
+        return { 
+          ...artwork, 
+          isFollowing, 
+          hasLiked, 
+          likesCount,  
+          views: artwork.views ?? artwork.viewedBy?.length ?? 0, 
+          isSaved 
+        };
+      });
+
+      setArtworks(processed);
+      setTotalPages(data.pagination?.totalPages || 1);
+    } catch (err) {
+      console.error("❌ Error fetching page:", err);
       setError("Failed to load artworks.");
     } finally {
       setLoading(false);
     }
   }, [user]);
 
-  // Fetch recommendations
-  const fetchRecommendations = useCallback(async (followingSet, savedSet, allArtworks) => {
-    if (!user) return;
-
-    try {
-      setRecommendationsLoading(true);
-      const response = await recommendationService.getRecommendations(user.id);
-
-      if (response.data?.success) {
-        const recommendations = response.data.recommendations || [];
-
-        const processedRecs = recommendations.map(rec => {
-          const existingArtwork = allArtworks.find(art => art._id === rec._id);
-          if (existingArtwork) return existingArtwork;
-          return { ...rec, isFollowing: followingSet.has(rec.clerkUserId), hasLiked: false, likesCount: rec.likes?.length || 0, isSaved: savedSet.has(rec._id) };
-        });
-
-        setRecommendedArtworks(processedRecs);
-      }
-    } catch (error) {
-      console.error("❌ Error fetching recommendations:", error);
-    } finally {
-      setRecommendationsLoading(false);
-    }
-  }, [user]);
-
+  // Initial load
   useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+    const init = async () => {
+      setLoading(true);
+      await fetchMetadata();
+      await fetchFullArtworks();
+      await fetchAllPage(1);
+      setCurrentPage(1);
+      initialLoadDone.current = true;
+    };
+    init();
+  }, [fetchMetadata, fetchFullArtworks, fetchAllPage]);
+
+  // Re-fetch 'all' page when page changes (skip initial mount)
+  useEffect(() => {
+    if (!initialLoadDone.current) return;
+    if (activeTab === 'all') {
+      fetchAllPage(currentPage);
+    }
+  }, [activeTab, currentPage, fetchAllPage]);
 
   const toggleSave = async (artworkId, e) => {
     if (e) e.stopPropagation();
@@ -191,6 +203,7 @@ const Discover = () => {
         } else {
           newSavedSet.add(artworkId);
         }
+        savedRef.current = newSavedSet;
         setSavedArtworks(newSavedSet);
 
         // Update artworks state
@@ -198,6 +211,7 @@ const Discover = () => {
           art._id === artworkId ? { ...art, isSaved: !isCurrentlySaved } : art
         );
 
+        setAllArtworks(updateSaveState);
         setArtworks(updateSaveState);
         setRecommendedArtworks(updateSaveState);
 
@@ -236,12 +250,14 @@ const Discover = () => {
       if (response.data.success) {
         const newFollowingSet = new Set(followingArtists);
         isCurrentlyFollowing ? newFollowingSet.delete(artistId) : newFollowingSet.add(artistId);
+        followingRef.current = newFollowingSet;
         setFollowingArtists(newFollowingSet);
 
         const updateState = (items) => items.map(art =>
           art.clerkUserId === artistId ? { ...art, isFollowing: !isCurrentlyFollowing } : art
         );
 
+        setAllArtworks(updateState);
         setArtworks(updateState);
         setRecommendedArtworks(updateState);
 
@@ -330,6 +346,7 @@ const Discover = () => {
         setMessage(liked ? "✅ Liked!" : "❌ Unliked");
         const updateLikeState = (items) => items.map(art => art._id === artworkId ? { ...art, hasLiked: liked, likesCount: likes } : art);
 
+        setAllArtworks(updateLikeState);
         setArtworks(updateLikeState);
         setRecommendedArtworks(updateLikeState);
 
@@ -347,38 +364,6 @@ const Discover = () => {
   };
 
 
-  const getFilteredArtworks = () => {
-    let artworksToShow = [];
-
-    switch (activeTab) {
-      case 'recommended':
-        artworksToShow = recommendedArtworks;
-        break;
-      case 'following':
-        artworksToShow = artworks.filter(artwork =>
-          artwork.clerkUserId && followingArtists.has(artwork.clerkUserId)
-        );
-        break;
-      case 'all':
-      default:
-        artworksToShow = artworks;
-        break;
-    }
-
-    // Apply search filter
-    if (searchTerm) {
-      artworksToShow = artworksToShow.filter(artwork =>
-        artwork &&
-        (artwork.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          artwork.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          artwork.artistName?.toLowerCase().includes(searchTerm.toLowerCase()))
-      );
-    }
-
-    return artworksToShow;
-  };
-
-  const filteredArtworks = getFilteredArtworks();
 
 
   const updateLocalViews = (artworkId, newViewCount) => {
@@ -389,6 +374,7 @@ const Discover = () => {
       artwork._id === artworkId ? { ...artwork, views: newViewCount } : artwork
     );
 
+    setAllArtworks(updateState);
     setArtworks(updateState);
     setRecommendedArtworks(updateState); 
 
@@ -413,28 +399,42 @@ const Discover = () => {
 
   const handleTabChange = (tab) => {
     setActiveTab(tab);
+    setCurrentPage(1);
   };
 
   const getArtworksForDisplay = () => {
-    let sourceArray = artworks;
+    let sourceArray = [];
 
-    if (activeTab === 'recommended') {
+    if (activeTab === 'all') {
+      sourceArray = artworks;
+    } else if (activeTab === 'recommended') {
       sourceArray = recommendedArtworks;
     } else if (activeTab === 'following') {
-      sourceArray = artworks.filter(art => followingArtists.has(art.clerkUserId));
+      sourceArray = allArtworks.filter(art => followingArtists.has(art.clerkUserId));
     }
 
-    if (!searchTerm) {
-      return sourceArray;
+    // Apply search
+    if (searchTerm) {
+      sourceArray = sourceArray.filter(art =>
+        art &&
+        (art.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          art.artistName?.toLowerCase().includes(searchTerm.toLowerCase()))
+      );
     }
 
-    return sourceArray.filter(art =>
-      art.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      art.artistName?.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    return sourceArray;
   };
 
-  const artworksForDisplay = getArtworksForDisplay();
+  const allFiltered = getArtworksForDisplay();
+  const totalFilteredPages = Math.ceil(allFiltered.length / itemsPerPage) || 1;
+  const displayTotalPages = activeTab === 'all' ? totalPages : totalFilteredPages;
+
+  const artworksForDisplay = activeTab === 'all'
+    ? allFiltered
+    : allFiltered.slice(
+        (currentPage - 1) * itemsPerPage,
+        currentPage * itemsPerPage
+      );
 
   
 
@@ -628,7 +628,7 @@ const Discover = () => {
         )}
 
         {/* Pagination Controls */}
-        {!loading && !recommendationsLoading && artworksForDisplay.length > 0 && totalPages > 1 && (
+        {!loading && !recommendationsLoading && artworksForDisplay.length > 0 && displayTotalPages > 1 && (
           <div className="flex items-center justify-center gap-3 my-12">
             <button
               onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
@@ -639,11 +639,11 @@ const Discover = () => {
             </button>
             
             <div className="flex items-center gap-2">
-              {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+              {Array.from({ length: Math.min(5, displayTotalPages) }, (_, i) => {
                 let pageNum = i + 1;
-                if (totalPages > 5 && currentPage > 3) {
+                if (displayTotalPages > 5 && currentPage > 3) {
                   pageNum = currentPage - 2 + i;
-                  if (pageNum > totalPages) pageNum = totalPages - 4 + i;
+                  if (pageNum > displayTotalPages) pageNum = displayTotalPages - 4 + i;
                 }
                 
                 return (
@@ -663,21 +663,21 @@ const Discover = () => {
             </div>
 
             <button
-              onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-              disabled={currentPage === totalPages}
+              onClick={() => setCurrentPage(prev => Math.min(prev + 1, displayTotalPages))}
+              disabled={currentPage === displayTotalPages}
               className="px-4 py-2 bg-white/5 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-white/10 transition-all duration-200 border border-white/10"
             >
               Next →
             </button>
 
             <span className="text-gray-400 text-sm ml-4">
-              Page {currentPage} of {totalPages}
+              Page {currentPage} of {displayTotalPages}
             </span>
           </div>
         )}
 
         {/* Empty States */}
-        {filteredArtworks.length === 0 && !loading && !recommendationsLoading && (
+        {allFiltered.length === 0 && !loading && !recommendationsLoading && (
           <div className="text-center py-12">
             <div className="text-6xl mb-4 opacity-50">
               {activeTab === 'recommended' ? '🎯' :
@@ -715,28 +715,36 @@ const Discover = () => {
         {/* Artwork Detail Modal */}
         {isModalOpen && selectedArtwork && (
           <div
-            className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            className="fixed inset-0 bg-black/90 backdrop-blur-sm z-50 flex items-center justify-center p-2 sm:p-4"
             onClick={handleBackdropClick}
           >
-            <div className="bg-gray-900 rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto border border-white/10">
-              <div className="relative">
-                {/* Close Button */}
-                <button
-                  onClick={closeModal}
-                  className="absolute top-4 right-4 z-10 bg-black/50 hover:bg-black/70 text-white rounded-full p-2 transition-all duration-300"
-                >
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
+            <div className="bg-gray-900 rounded-2xl max-w-5xl w-full max-h-[95vh] overflow-y-auto border border-white/10">
+              {/* Close Button */}
+              <button
+                onClick={closeModal}
+                className="absolute top-3 right-3 z-20 bg-black/60 hover:bg-black/80 text-white rounded-full p-2 transition-all duration-300 shadow-lg"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
 
+              {/* Artwork Image - Full width, full artwork visible */}
+              <div className="relative w-full bg-gray-800 flex items-center justify-center" style={{ minHeight: '50vh', maxHeight: '70vh' }}>
+                <img
+                  src={selectedArtwork.imageUrl}
+                  alt={selectedArtwork.title}
+                  className="w-full h-full object-contain p-4"
+                  style={{ maxHeight: '70vh' }}
+                />
+                {/* Save Button */}
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
                     toggleSave(selectedArtwork._id, e);
                   }}
                   disabled={savingArtwork === selectedArtwork._id || !user}
-                  className={`absolute top-4 left-4 z-10 px-4 py-2 rounded-full transition-all duration-300 ${
+                  className={`absolute top-3 left-3 z-10 px-4 py-2 rounded-full transition-all duration-300 shadow-lg text-sm font-medium ${
                     selectedArtwork.isSaved 
                       ? 'bg-yellow-500 text-white hover:bg-yellow-600' 
                       : 'bg-white/10 text-white hover:bg-white/20'
@@ -745,210 +753,176 @@ const Discover = () => {
                   {savingArtwork === selectedArtwork._id ? (
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current"></div>
                   ) : (
-                    <span className="flex items-center space-x-2">
+                    <span className="flex items-center gap-1.5">
                       <span>{selectedArtwork.isSaved ? '⭐' : '☆'}</span>
                       <span>{selectedArtwork.isSaved ? 'Saved' : 'Save'}</span>
                     </span>
                   )}
                 </button>
+              </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-2">
-                  {/* Artwork Image */}
-                  <div className="lg:sticky lg:top-0">
-                    <img
-                      src={selectedArtwork.imageUrl}
-                      alt={selectedArtwork.title}
-                      className="w-full h-64 lg:h-full object-cover rounded-t-2xl lg:rounded-l-2xl lg:rounded-tr-none"
-                    />
-                  </div>
-
-                  {/* Artwork Details */}
-                  <div className="p-6">
-                    <h2 className="text-2xl lg:text-3xl font-bold text-white mb-4">
+              {/* Artwork Details */}
+              <div className="p-4 sm:p-6 space-y-4">
+                {/* Title & Artist Row */}
+                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+                  <div className="flex-1 min-w-0">
+                    <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-white truncate">
                       {selectedArtwork.title}
                     </h2>
-
-                    <div className="flex items-center space-x-3 mb-4">
-                      <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white font-semibold">
+                    <div className="flex items-center gap-2 mt-1">
+                      <div className="w-7 h-7 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white font-semibold text-xs flex-shrink-0">
                         {selectedArtwork.artistName?.charAt(0) || 'A'}
                       </div>
-                      <div className="flex-1">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="text-white font-medium">by {selectedArtwork.artistName}</p>
-                            <p className="text-gray-400 text-sm">{selectedArtwork.category}</p>
-                          </div>
-                          {/* Follow/Unfollow Buttons in Modal */}
-                          {user && selectedArtwork.clerkUserId !== user.id && (
-                            <div className="flex space-x-2">
-                              {/* Follow Button */}
-                              {selectedArtwork.isFollowing ? (
-                                <button onClick={(e) => toggleFollow(selectedArtwork.clerkUserId, selectedArtwork.artistName, e)} disabled={togglingFollow === selectedArtwork.clerkUserId} className="...">
-                                  {togglingFollow === selectedArtwork.clerkUserId ? <div className="..."></div> : <span>✓ Following</span>}
-                                </button>
-                              ) : (
-                                <button onClick={(e) => toggleFollow(selectedArtwork.clerkUserId, selectedArtwork.artistName, e)} disabled={togglingFollow === selectedArtwork.clerkUserId} className="...">
-                                  {togglingFollow === selectedArtwork.clerkUserId ? <div className="..."></div> : <span>+ Follow</span>}
-                                </button>
-                              )}
-                            </div>
+                      <p className="text-gray-300 font-medium truncate">by {selectedArtwork.artistName}</p>
+                      {selectedArtwork.category && (
+                        <span className="text-gray-500 text-sm hidden sm:inline">· {selectedArtwork.category}</span>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {user && selectedArtwork.clerkUserId !== user.id && (
+                      selectedArtwork.isFollowing ? (
+                        <button onClick={(e) => toggleFollow(selectedArtwork.clerkUserId, selectedArtwork.artistName, e)} disabled={togglingFollow === selectedArtwork.clerkUserId} className="px-4 py-1.5 bg-green-600 text-white rounded-full hover:bg-green-700 disabled:opacity-50 transition-colors text-sm font-medium">
+                          {togglingFollow === selectedArtwork.clerkUserId ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div> : <span>✓ Following</span>}
+                        </button>
+                      ) : (
+                        <button onClick={(e) => toggleFollow(selectedArtwork.clerkUserId, selectedArtwork.artistName, e)} disabled={togglingFollow === selectedArtwork.clerkUserId} className="px-4 py-1.5 bg-indigo-600 text-white rounded-full hover:bg-indigo-700 disabled:opacity-50 transition-colors text-sm font-medium">
+                          {togglingFollow === selectedArtwork.clerkUserId ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div> : <span>+ Follow</span>}
+                        </button>
+                      )
+                    )}
+                    {user && selectedArtwork.clerkUserId === user.id && (
+                      <span className="text-xs text-green-400 font-medium bg-green-400/10 px-3 py-1 rounded-full">Your artwork</span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Description */}
+                {selectedArtwork.description && (
+                  <p className="text-gray-300 leading-relaxed text-sm sm:text-base">
+                    {selectedArtwork.description}
+                  </p>
+                )}
+
+                {/* Tags */}
+                {selectedArtwork.tags && selectedArtwork.tags.length > 0 && (
+                  <div className="flex flex-wrap gap-2">
+                    {selectedArtwork.tags.map((tag, index) => (
+                      <span
+                        key={index}
+                        className="bg-purple-600/20 text-purple-300 px-3 py-1 rounded-full text-xs border border-purple-500/30"
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                )}
+
+                {/* Action Bar */}
+                <div className="flex flex-wrap items-center gap-3 pt-3 border-t border-white/10">
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleLike(selectedArtwork._id, e);
+                    }}
+                    disabled={likingArtwork === selectedArtwork._id || !user}
+                    className={`flex items-center gap-1.5 px-4 py-2 rounded-full transition-all duration-300 text-sm font-medium ${
+                      selectedArtwork.hasLiked
+                        ? 'bg-red-500/20 text-red-400 border border-red-500/30'
+                        : 'bg-white/10 text-gray-300 hover:bg-white/20 border border-white/10'
+                    } ${!user ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  >
+                    {likingArtwork === selectedArtwork._id ? (
+                      <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
+                    ) : (
+                      <span>{selectedArtwork.hasLiked ? '❤️' : '🤍'}</span>
+                    )}
+                    <span>{selectedArtwork.likesCount || 0} Likes</span>
+                  </button>
+
+                  <div className="flex items-center gap-1.5 text-gray-400 text-sm">
+                    <span>👁️</span>
+                    <span>{selectedArtwork.views || 0} Views</span>
+                  </div>
+
+                  <span className="text-gray-500 text-sm">· {new Date(selectedArtwork.createdAt).toLocaleDateString()}</span>
+
+                  {selectedArtwork.dimensions && (
+                    <span className="text-gray-500 text-sm hidden sm:inline">· {selectedArtwork.dimensions.width}×{selectedArtwork.dimensions.height} {selectedArtwork.dimensions.unit}</span>
+                  )}
+
+                  {message && (
+                    <span className={`text-sm px-3 py-1 rounded-full ${
+                      message.includes('❌') ? 'bg-red-500/20 text-red-400' : 'bg-green-500/20 text-green-400'
+                    }`}>
+                      {message}
+                    </span>
+                  )}
+                </div>
+
+                {/* Add to Collection */}
+                {user && selectedArtwork.clerkUserId === user.id && (
+                  <div className="relative">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setShowCollectionDropdown(!showCollectionDropdown);
+                      }}
+                      className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-full transition-all duration-300 text-sm font-medium border border-white/10"
+                    >
+                      📁 Add to Collection
+                    </button>
+
+                    {showCollectionDropdown && (
+                      <div className="absolute top-full left-0 mt-2 w-72 bg-gray-800 border border-white/10 rounded-xl shadow-2xl z-30">
+                        <div className="flex items-center justify-between px-4 py-3 border-b border-white/10">
+                          <h4 className="text-white font-medium text-sm">Add to Collection</h4>
+                          <button onClick={() => setShowCollectionDropdown(false)} className="text-gray-400 hover:text-white text-lg leading-none">&times;</button>
+                        </div>
+                        <div className="max-h-48 overflow-y-auto py-1">
+                          {userCollections.length > 0 ? (
+                            userCollections.map(collection => (
+                              <button
+                                key={collection._id}
+                                onClick={() => handleAddToCollection(collection._id, collection.name)}
+                                disabled={addingToCollection === collection._id}
+                                className="flex items-center gap-3 w-full px-4 py-2.5 hover:bg-white/5 transition-colors text-left disabled:opacity-50"
+                              >
+                                {addingToCollection === collection._id ? (
+                                  <div className="w-4 h-4 border-2 border-purple-400 border-t-transparent rounded-full animate-spin flex-shrink-0"></div>
+                                ) : (
+                                  <span className="flex-shrink-0">🖼️</span>
+                                )}
+                                <div className="flex-1 min-w-0">
+                                  <span className="block text-white text-sm truncate">{collection.name}</span>
+                                  <span className="block text-gray-400 text-xs">{collection.artworks?.length || 0} artworks</span>
+                                </div>
+                                {collection.artworks?.includes(selectedArtwork._id) && (
+                                  <span className="text-green-400 text-sm flex-shrink-0">✓</span>
+                                )}
+                              </button>
+                            ))
+                          ) : (
+                            <div className="px-4 py-6 text-center text-gray-400 text-sm">No collections yet</div>
                           )}
                         </div>
-                        {user && (
-                          <p className="text-xs mt-1">
-                            {selectedArtwork.clerkUserId === user.id ? (
-                              <span className="text-green-400">⭐ Your artwork</span>
-                            ) : (
-                              <span className="text-blue-400">👤 Other user's artwork</span>
-                            )}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-
-                    <p className="text-gray-300 mb-6 leading-relaxed">
-                      {selectedArtwork.description}
-                    </p>
-
-                    {/* Tags */}
-                    {selectedArtwork.tags && selectedArtwork.tags.length > 0 && (
-                      <div className="mb-6">
-                        <h3 className="text-white font-semibold mb-2">Tags</h3>
-                        <div className="flex flex-wrap gap-2">
-                          {selectedArtwork.tags.map((tag, index) => (
-                            <span
-                              key={index}
-                              className="bg-purple-600/20 text-purple-300 px-3 py-1 rounded-full text-sm border border-purple-500/30"
-                            >
-                              {tag}
-                            </span>
-                          ))}
+                        <div className="px-4 py-3 border-t border-white/10">
+                          <button onClick={handleCreateNewCollection} className="w-full py-2 bg-purple-600/20 hover:bg-purple-600/30 text-purple-400 rounded-lg transition-colors text-sm font-medium border border-purple-500/30">
+                            + Create New Collection
+                          </button>
                         </div>
                       </div>
                     )}
-
-                    {/* Engagement Stats */}
-                    <div className="modal-stats">
-                      <div className="modal-actions">
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleLike(selectedArtwork._id, e);
-                          }}
-                          disabled={likingArtwork === selectedArtwork._id || !user}
-                          className={`modal-like-btn ${selectedArtwork.hasLiked ? 'liked' : ''}`}
-                        >
-                          {likingArtwork === selectedArtwork._id ? (
-                            <div className="like-spinner"></div>
-                          ) : (
-                            <span>{selectedArtwork.hasLiked ? '❤️' : '🤍'}</span>
-                          )}
-                          <span>{selectedArtwork.likesCount || 0} Likes</span>
-                        </button>
-
-                        {/* Message Display */}
-                        {message && (
-                          <div className={`message-display ${message.includes('❌') ? 'error' : 'success'}`}>
-                            {message}
-                          </div>
-                        )}
-
-                        {/* Add to Collection Button */}
-                        {user && selectedArtwork.clerkUserId === user.id && (
-                          <div className="collection-dropdown-container">
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setShowCollectionDropdown(!showCollectionDropdown);
-                              }}
-                              className="add-to-collection-btn"
-                            >
-                              📁 Add to Collection
-                            </button>
-
-                            {showCollectionDropdown && (
-                              <div className="collection-dropdown">
-                                <div className="dropdown-header">
-                                  <h4>Add to Collection</h4>
-                                  <button
-                                    onClick={() => setShowCollectionDropdown(false)}
-                                    className="close-dropdown"
-                                  >
-                                    ×
-                                  </button>
-                                </div>
-
-                                <div className="collections-list">
-                                  {userCollections.length > 0 ? (
-                                    userCollections.map(collection => (
-                                      <button
-                                        key={collection._id}
-                                        onClick={() => handleAddToCollection(collection._id, collection.name)}
-                                        disabled={addingToCollection === collection._id}
-                                        className="collection-option"
-                                      >
-                                        {addingToCollection === collection._id ? (
-                                          <div className="small-spinner"></div>
-                                        ) : (
-                                          <span className="collection-icon">🖼️</span>
-                                        )}
-                                        <div className="collection-info">
-                                          <span className="collection-name">{collection.name}</span>
-                                          <span className="artwork-count">
-                                            {collection.artworks?.length || 0} artworks
-                                          </span>
-                                        </div>
-                                        {collection.artworks?.includes(selectedArtwork._id) && (
-                                          <span className="already-added">✓</span>
-                                        )}
-                                      </button>
-                                    ))
-                                  ) : (
-                                    <div className="no-collections-message">
-                                      <p>No collections yet</p>
-                                    </div>
-                                  )}
-                                </div>
-
-                                <div className="dropdown-actions">
-                                  <button
-                                    onClick={handleCreateNewCollection}
-                                    className="create-collection-btn"
-                                  >
-                                    + Create New Collection
-                                  </button>
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        )}
-
-                        {user && selectedArtwork.clerkUserId !== user.id && (
-                          <div className="text-gray-400 text-sm mt-2 text-center">
-                            <p>You can only add your own artworks to collections</p>
-                          </div>
-                        )}
-
-                        <div className="modal-views">
-                          <span>👁️</span>
-                          <span>{selectedArtwork.views || 0} Views</span>
-                        </div>
-                      </div>
-
-                      {/* Additional Info */}
-                      <div className="text-right text-sm text-gray-400">
-                        <p>Uploaded {new Date(selectedArtwork.createdAt).toLocaleDateString()}</p>
-                        {selectedArtwork.dimensions && (
-                          <p>{selectedArtwork.dimensions.width} × {selectedArtwork.dimensions.height} {selectedArtwork.dimensions.unit}</p>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Comments Section */}
-                    <CommentsSection artworkId={selectedArtwork._id} />
                   </div>
-                </div>
+                )}
+
+                {user && selectedArtwork.clerkUserId !== user.id && (
+                  <p className="text-gray-500 text-xs">You can only add your own artworks to collections</p>
+                )}
+
+                {/* Comments Section */}
+                <CommentsSection artworkId={selectedArtwork._id} />
               </div>
             </div>
           </div>

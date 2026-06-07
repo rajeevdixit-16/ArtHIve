@@ -45,7 +45,6 @@ const VerifyEmail = () => {
         setError('Failed to send verification code. Please try again.');
       } else {
         console.log('✅ Verification code sent to:', emailAddress);
-        console.log('Code for testing:', data.code);
         // Show success message
         setSuccess('✅ Verification code sent to your email');
         setTimeout(() => setSuccess(''), 5000);

@@ -133,7 +133,9 @@ const EditProfile = () => {
       updates.publicMetadata = {
         ...currentPublicMetadata,
         bio: formData.bio.trim() || null,
-        
+        website: formData.website?.trim() || null,
+        location: formData.location?.trim() || null,
+        socialLinks: formData.socialLinks || [],
       };
 
       

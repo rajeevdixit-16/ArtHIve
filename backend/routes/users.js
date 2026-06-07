@@ -1,7 +1,12 @@
 import express from 'express';
+import { protect } from '../middleware/auth.js';
 import User from '../models/User.js';
 
 const router = express.Router();
+
+function escapeRegex(str) {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
 
 // Sync user data from Clerk to MongoDB
 router.post('/sync', async (req, res) => {
@@ -93,8 +98,7 @@ router.post('/send-verification-code', async (req, res) => {
     console.log(`✅ Verification code for ${email}: ${verificationCode}`);
 
     res.status(200).json({ 
-      message: 'Verification code sent to email',
-      code: verificationCode // For testing - remove in production
+      message: 'Verification code sent to email'
     });
   } catch (error) {
     console.error('Error sending verification code:', error);
@@ -190,8 +194,7 @@ router.post('/resend-verification-code', async (req, res) => {
     console.log(`✅ New verification code for ${email}: ${verificationCode}`);
 
     res.status(200).json({ 
-      message: 'Verification code resent to email',
-      code: verificationCode // For testing - remove in production
+      message: 'Verification code resent to email'
     });
   } catch (error) {
     console.error('Error resending verification code:', error);
@@ -241,7 +244,7 @@ router.get('/:userId', async (req, res) => {
 });
 
 // Update user profile
-router.put('/:userId', async (req, res) => {
+router.put('/:userId', protect, async (req, res) => {
   try {
     const { 
       username, 
@@ -252,6 +255,10 @@ router.put('/:userId', async (req, res) => {
       socialLinks,
       preferences 
     } = req.body;
+
+    if (req.user._id.toString() !== req.params.userId) {
+      return res.status(403).json({ error: 'Not authorized' });
+    }
 
     const user = await User.findById(req.params.userId);
     if (!user) {
@@ -298,8 +305,12 @@ router.put('/:userId', async (req, res) => {
 });
 
 // Update user role
-router.patch('/:userId/role', async (req, res) => {
+router.patch('/:userId/role', protect, async (req, res) => {
   try {
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({ error: 'Admin access required' });
+    }
+
     const { role } = req.body;
     
     if (!['user', 'artist', 'admin'].includes(role)) {
@@ -357,11 +368,12 @@ router.get('/', async (req, res) => {
     
     // Search by username, firstName, lastName, or email
     if (search) {
+      const escaped = escapeRegex(search);
       query.$or = [
-        { username: { $regex: search, $options: 'i' } },
-        { firstName: { $regex: search, $options: 'i' } },
-        { lastName: { $regex: search, $options: 'i' } },
-        { email: { $regex: search, $options: 'i' } }
+        { username: { $regex: escaped, $options: 'i' } },
+        { firstName: { $regex: escaped, $options: 'i' } },
+        { lastName: { $regex: escaped, $options: 'i' } },
+        { email: { $regex: escaped, $options: 'i' } }
       ];
     }
     
@@ -394,8 +406,12 @@ router.get('/', async (req, res) => {
 });
 
 // Deactivate user account
-router.patch('/:userId/deactivate', async (req, res) => {
+router.patch('/:userId/deactivate', protect, async (req, res) => {
   try {
+    if (req.user._id.toString() !== req.params.userId) {
+      return res.status(403).json({ error: 'Not authorized' });
+    }
+
     const user = await User.findByIdAndUpdate(
       req.params.userId,
       { isActive: false },
@@ -414,8 +430,12 @@ router.patch('/:userId/deactivate', async (req, res) => {
 });
 
 // Reactivate user account
-router.patch('/:userId/reactivate', async (req, res) => {
+router.patch('/:userId/reactivate', protect, async (req, res) => {
   try {
+    if (req.user._id.toString() !== req.params.userId) {
+      return res.status(403).json({ error: 'Not authorized' });
+    }
+
     const user = await User.findByIdAndUpdate(
       req.params.userId,
       { isActive: true },

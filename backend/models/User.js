@@ -193,7 +193,7 @@ userSchema.methods.updateStats = async function() {
           _id: null,
           artworkCount: { $sum: 1 },
           totalLikes: { $sum: { $size: "$likes" } },
-          totalViews: { $sum: "$views" }
+          totalViews: { $sum: { $size: "$viewedBy" } }
         }
       }
     ]);

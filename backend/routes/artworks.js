@@ -7,6 +7,12 @@ import { protect } from '../middleware/auth.js';
 
 const router = express.Router();
 
+function escapeRegex(str) {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+const isValidObjectId = (id) => mongoose.Types.ObjectId.isValid(id);
+
 // GET all public artworks with filtering and pagination
 router.get('/', async (req, res) => {
   try {
@@ -40,10 +46,11 @@ router.get('/', async (req, res) => {
 
     // Search in title, description, and tags
     if (search) {
+      const escaped = escapeRegex(search);
       query.$or = [
-        { title: { $regex: search, $options: 'i' } },
-        { description: { $regex: search, $options: 'i' } },
-        { tags: { $in: [new RegExp(search, 'i')] } }
+        { title: { $regex: escaped, $options: 'i' } },
+        { description: { $regex: escaped, $options: 'i' } },
+        { tags: { $in: [new RegExp(escaped, 'i')] } }
       ];
     }
 
@@ -88,6 +95,9 @@ router.get('/', async (req, res) => {
 // GET single artwork by ID
 router.get('/:id', async (req, res) => {
   try {
+    if (!isValidObjectId(req.params.id)) {
+      return res.status(400).json({ error: 'Invalid artwork ID format' });
+    }
     const artwork = await Artwork.findById(req.params.id)
       .populate('userId', 'username firstName lastName profileImage bio socialLinks');
 
@@ -96,9 +106,10 @@ router.get('/:id', async (req, res) => {
     }
 
     // Increment views when someone visits the artwork page
-    await artwork.incrementViews();
+    const clerkUserId = req.query.clerkUserId;
+    const views = await artwork.recordView(clerkUserId);
 
-    console.log(`👁️ Artwork "${artwork.title}" viewed. Total views: ${artwork.views}`);
+    console.log(`👁️ Artwork "${artwork.title}" viewed. Total views: ${views}`);
 
     res.json(artwork);
   } catch (error) {
@@ -108,7 +119,7 @@ router.get('/:id', async (req, res) => {
 });
 
 // CREATE new artwork 
-router.post('/', async (req, res) => {
+router.post('/', protect, async (req, res) => {
   try {
     const { 
       title, 
@@ -124,11 +135,11 @@ router.post('/', async (req, res) => {
       resolution,
       aiGenerated,
       aiModel,
-      colorPalette,
-      clerkUserId 
+      colorPalette
     } = req.body;
 
-    // Validate required fields
+    const clerkUserId = req.user.clerkUserId;
+
     if (!clerkUserId) {
       return res.status(400).json({ error: 'clerkUserId is required' });
     }
@@ -183,10 +194,13 @@ router.post('/', async (req, res) => {
 });
 
 // UPDATE artwork (only by owner)
-router.put('/:id', async (req, res) => {
+router.put('/:id', protect, async (req, res) => {
   try {
-    const { clerkUserId } = req.body;
-    
+    if (!isValidObjectId(req.params.id)) {
+      return res.status(400).json({ error: 'Invalid artwork ID format' });
+    }
+    const clerkUserId = req.user.clerkUserId;
+
     if (!clerkUserId) {
       return res.status(400).json({ error: 'clerkUserId is required' });
     }
@@ -237,10 +251,13 @@ router.put('/:id', async (req, res) => {
 });
 
 // DELETE artwork (only by owner)
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', protect, async (req, res) => {
   try {
-    const { clerkUserId } = req.body;
-    
+    if (!isValidObjectId(req.params.id)) {
+      return res.status(400).json({ error: 'Invalid artwork ID format' });
+    }
+    const clerkUserId = req.user.clerkUserId;
+
     if (!clerkUserId) {
       return res.status(400).json({ error: 'clerkUserId is required' });
     }
@@ -266,9 +283,12 @@ router.delete('/:id', async (req, res) => {
 
 // LIKE/UNLIKE artwork
 
-router.post('/:id/like', async (req, res) => {
+router.post('/:id/like', protect, async (req, res) => {
   try {
-    const { clerkUserId } = req.body;
+    if (!isValidObjectId(req.params.id)) {
+      return res.status(400).json({ success: false, error: 'Invalid artwork ID format' });
+    }
+    const clerkUserId = req.user.clerkUserId;
 
     console.log('❤️ Like request received:', { artworkId: req.params.id, clerkUserId });
 
@@ -339,10 +359,38 @@ router.post('/:id/like', async (req, res) => {
   }
 });
 
+// Batch like-status check
+router.post('/like-status/batch', async (req, res) => {
+  try {
+    const { artworkIds, clerkUserId } = req.body;
+
+    if (!Array.isArray(artworkIds) || !artworkIds.length || !clerkUserId) {
+      return res.status(400).json({ success: false, error: 'artworkIds array and clerkUserId are required' });
+    }
+
+    const validIds = artworkIds.filter(id => isValidObjectId(id));
+    const artworks = await Artwork.find({ _id: { $in: validIds } }).select('likes');
+
+    const results = artworks.map(artwork => ({
+      artworkId: artwork._id,
+      hasLiked: artwork.likes.includes(clerkUserId),
+      likesCount: artwork.likes.length
+    }));
+
+    res.json({ success: true, results });
+  } catch (error) {
+    console.error('Error in batch like-status:', error);
+    res.status(500).json({ success: false, error: 'Failed to check like statuses' });
+  }
+});
+
 // Also update the like-status route
 router.get('/:id/like-status/:clerkUserId', async (req, res) => {
   try {
     const { id, clerkUserId } = req.params;
+    if (!isValidObjectId(id)) {
+      return res.status(400).json({ success: false, error: 'Invalid artwork ID format' });
+    }
 
     console.log('🔍 Checking like status:', { artworkId: id, clerkUserId });
 
@@ -376,10 +424,13 @@ router.get('/:id/like-status/:clerkUserId', async (req, res) => {
 
 // COUNT view for an artwork
 
-router.post('/:id/view', async (req, res) => {
+router.post('/:id/view', protect, async (req, res) => {
   try {
-    const { clerkUserId } = req.body; // A user ID is now required to track unique views
-    
+    if (!isValidObjectId(req.params.id)) {
+      return res.status(400).json({ success: false, error: 'Invalid artwork ID format' });
+    }
+    const clerkUserId = req.user.clerkUserId;
+
     const artwork = await Artwork.findById(req.params.id);
     if (!artwork) {
       return res.status(404).json({ success: false, error: 'Artwork not found' });
@@ -394,7 +445,6 @@ router.post('/:id/view', async (req, res) => {
         
         message = 'View recorded successfully';
     } else if (!clerkUserId) {
-        // Handle anonymous views if you wish, but we won't count them here
         message = 'Anonymous view not counted.';
     }
 
@@ -416,8 +466,7 @@ router.get('/user/:clerkUserId', async (req, res) => {
     const { clerkUserId } = req.params;
     
     const artworks = await Artwork.find({ clerkUserId })
-      // ✅ FIX: Removed 'views' from this line. It will be added automatically.
-      .select('title imageUrl artistName tags createdAt likes viewedBy') 
+      .select('title imageUrl artistName tags createdAt likes') 
       .sort({ createdAt: -1 });
 
     res.json({

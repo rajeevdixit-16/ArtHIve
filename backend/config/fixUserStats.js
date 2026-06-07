@@ -1,17 +1,20 @@
 import mongoose from 'mongoose';
+import dotenv from 'dotenv';
 import User from '../models/User.js'; // Ensure you import your User model
 import Artwork from '../models/Artwork.js'; // Ensure you import your Artwork model
 import Follow from '../models/Follow.js';
 import Collection from '../models/Collection.js';
 
-const MONGODB_URI = 'mongodb+srv://dixitrajeev5202_db_user:y7SJJL6fHfJynxWb@cluster0.gkc7ftl.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0'; // REPLACE with your DB URI
+dotenv.config();
+const MONGODB_URI = process.env.MONGODB_URI;
+if (!MONGODB_URI) {
+  console.error('Please set MONGODB_URI in your .env file');
+  process.exit(1);
+}
 
 async function fixStats() {
   try {
-    await mongoose.connect(MONGODB_URI, {
-      useNewUrlParser: true, // Deprecated in newer Mongoose
-      useUnifiedTopology: true // Deprecated in newer Mongoose
-    });
+    await mongoose.connect(MONGODB_URI);
     console.log('MongoDB connected successfully.');
 
     const users = await User.find({}); // Get all users

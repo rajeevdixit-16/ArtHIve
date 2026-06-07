@@ -8,9 +8,10 @@ import Collection from '../models/Collection.js';
 const router = express.Router();
 
 router.use((req, res, next) => {
-  console.log('✅ Request has successfully reached the saved.js router!');
-  console.log('   - Path requested:', req.path);
-  next(); 
+  if (process.env.NODE_ENV !== 'production') {
+    console.log('✅ Request reached saved.js router:', req.path);
+  }
+  next();
 });
 
 router.get('/:userId', async (req, res) => {
@@ -222,14 +223,34 @@ router.post('/collections/:collectionId', async (req, res) => {
     const { collectionId } = req.params;
     const { userId } = req.body;
 
-    console.log('🔄 Saving collection:', { collectionId, userId });
+    if (!userId) {
+      return res.status(400).json({ success: false, error: 'userId is required' });
+    }
 
-    res.json({
+    const collection = await Collection.findById(collectionId);
+    if (!collection) {
+      return res.status(404).json({ success: false, error: 'Collection not found' });
+    }
+
+    const existing = await SavedCollection.findOne({ userId, collectionId });
+    if (existing) {
+      return res.status(400).json({ success: false, error: 'Collection already saved' });
+    }
+
+    const saved = await SavedCollection.create({ userId, collectionId });
+
+    console.log('🔄 Collection saved:', { collectionId, userId });
+
+    res.status(201).json({
       success: true,
-      message: 'Collection saved successfully'
+      message: 'Collection saved successfully',
+      saved
     });
 
   } catch (error) {
+    if (error.code === 11000) {
+      return res.status(400).json({ success: false, error: 'Collection already saved' });
+    }
     console.error('❌ Error saving collection:', error);
     res.status(500).json({ 
       success: false, 

@@ -199,7 +199,7 @@ const Dashboard = () => {
         newActivities.push({
           id: `follower-${follower._id}`,
           action: `${formatFollowerName(follower)} started following you`,
-          timestamp: now - Math.floor(Math.random() * 86400000),
+          timestamp: new Date().toISOString(),
           icon: '👤',
           type: 'new_follower'
         });

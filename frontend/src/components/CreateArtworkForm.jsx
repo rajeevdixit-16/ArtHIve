@@ -20,7 +20,7 @@ const CreateArtworkForm = () => {
     }
 
     try {
-      const response = await fetch('http://localhost:5000/api/artworks', {
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001'}/api/artworks`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
