@@ -2,6 +2,8 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useClerk, useUser } from '@clerk/clerk-react';
 
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || '';
+
 const VerifyEmail = () => {
   const navigate = useNavigate();
   const { user, isLoaded } = useUser();
@@ -27,7 +29,7 @@ const VerifyEmail = () => {
     }
     
     try {
-      const response = await fetch('/api/users/send-verification-code', {
+      const response = await fetch(`${BACKEND_URL}/api/users/send-verification-code`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -165,7 +167,7 @@ const VerifyEmail = () => {
     setSuccess('');
 
     try {
-      const response = await fetch('/api/users/verify-email', {
+      const response = await fetch(`${BACKEND_URL}/api/users/verify-email`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -199,7 +201,7 @@ const VerifyEmail = () => {
     setError('');
 
     try {
-      const response = await fetch('/api/users/resend-verification-code', {
+      const response = await fetch(`${BACKEND_URL}/api/users/resend-verification-code`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

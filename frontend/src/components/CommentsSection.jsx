@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useUser } from '@clerk/clerk-react';
 
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || '';
+
 const CommentsSection = ({ artworkId, initialComments = [] }) => {
   const { user } = useUser();
   const [comments, setComments] = useState([]);
@@ -24,7 +26,7 @@ const CommentsSection = ({ artworkId, initialComments = [] }) => {
     
     try {
       setLoading(true);
-      const response = await fetch(`/api/comments/artwork/${artworkId}?page=${currentPage}&limit=${commentsPerPage}`);
+      const response = await fetch(`${BACKEND_URL}/api/comments/artwork/${artworkId}?page=${currentPage}&limit=${commentsPerPage}`);
       const data = await response.json();
       
       if (data.comments) {
@@ -59,7 +61,7 @@ const CommentsSection = ({ artworkId, initialComments = [] }) => {
       setLoading(true);
       setError('');
 
-      const response = await fetch('/api/comments', {
+      const response = await fetch(`${BACKEND_URL}/api/comments`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -93,7 +95,7 @@ const CommentsSection = ({ artworkId, initialComments = [] }) => {
     }
 
     try {
-      const response = await fetch(`/api/comments/${commentId}`, {
+      const response = await fetch(`${BACKEND_URL}/api/comments/${commentId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json'
@@ -121,7 +123,7 @@ const CommentsSection = ({ artworkId, initialComments = [] }) => {
     if (!window.confirm('Are you sure you want to delete this comment?')) return;
 
     try {
-      const response = await fetch(`/api/comments/${commentId}`, {
+      const response = await fetch(`${BACKEND_URL}/api/comments/${commentId}`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json'
@@ -166,7 +168,7 @@ const CommentsSection = ({ artworkId, initialComments = [] }) => {
     ));
 
     try {
-      const response = await fetch(`/api/comments/${commentId}/like`, {
+      const response = await fetch(`${BACKEND_URL}/api/comments/${commentId}/like`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ clerkUserId: user.id })
@@ -197,7 +199,7 @@ const CommentsSection = ({ artworkId, initialComments = [] }) => {
     if (!reason) return;
 
     try {
-      const response = await fetch(`/api/comments/${commentId}/flag`, {
+      const response = await fetch(`${BACKEND_URL}/api/comments/${commentId}/flag`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
