@@ -1,4 +1,5 @@
-const API_BASE_URL = 'http://localhost:3001/api';
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001';
+const API_BASE_URL = `${BACKEND_URL}/api`;
 
 // Generate tags for an image 
 export const autoTagImage = async (file, clerkUserId) => {
