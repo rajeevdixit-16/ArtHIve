@@ -2,7 +2,7 @@
 
 **ArtHive** is an art-sharing platform where artists can upload, showcase, and explore artworks. It includes AI-powered features — auto-tagging, art description generation, and personalized recommendations.
 
-🌐 **Live Demo:** [https://art-hive-deploy.vercel.app/](https://art-hive-deploy.vercel.app/)
+🌐 **Live Demo:** [https://art-hive-deploy.vercel.app/](https://art-h-ive.vercel.app/)
 
 ---
 
